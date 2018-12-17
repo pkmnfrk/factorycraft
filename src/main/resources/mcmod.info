@@ -1,0 +1,15 @@
+[
+{
+  "modid": "factorycraft",
+  "name": "FactoryCraft",
+  "description": "A tech mod focussing on heavy logistics",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "logoFile": "assets/factorycraft/logo.png",
+  "url": "https://github.com/pkmnfrk/factorycraft",
+  "updateUrl": "",
+  "authorList": [ "pkmnfrk" ],
+  "parent": "",
+  "screenshots": []
+}
+]

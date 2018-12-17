@@ -1,0 +1,10 @@
+{
+  "ingredients": {
+    "fluid": "com.mike_caron.mikesmodslib.recipes.ingredient.FluidIngredientFactory"
+  },
+  "recipes": {
+    "fluid": "com.mike_caron.mikesmodslib.recipes.specific.FluidRecipe$Factory"
+  },
+  "conditions": {
+  }
+}
