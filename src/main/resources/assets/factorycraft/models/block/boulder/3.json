@@ -1,0 +1,50 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "block/block",
+	"textures": {
+		"ore": "factorycraft:block/iron_ore",
+		"particle": "factorycraft:block/iron_ore"
+	},
+	"elements": [
+		{
+			"from": [11, 0, 11],
+			"to": [13, 1, 14],
+			"faces": {
+				"north": {"uv": [11, 11, 13, 12], "rotation": 180, "texture": "#ore"},
+				"east": {"uv": [12, 11, 13, 14], "rotation": 90, "texture": "#ore"},
+				"south": {"uv": [11, 13, 13, 14], "texture": "#ore"},
+				"west": {"uv": [11, 11, 12, 14], "rotation": 270, "texture": "#ore"},
+				"up": {"uv": [11, 11, 13, 14], "texture": "#ore"},
+				"down": {"uv": [13, 11, 11, 14], "rotation": 180, "texture": "#ore", "cullface": "down"}
+			}
+		},
+		{
+			"from": [13, 0, 12],
+			"to": [14, 1, 13],
+			"faces": {
+				"north": {"uv": [13, 12, 14, 13], "rotation": 180, "texture": "#ore"},
+				"east": {"uv": [14, 13, 13, 12], "rotation": 90, "texture": "#ore"},
+				"south": {"uv": [13, 12, 14, 13], "texture": "#ore"},
+				"up": {"uv": [13, 12, 14, 13], "texture": "#ore"},
+				"down": {"uv": [13, 12, 14, 13], "texture": "#ore", "cullface": "down"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [90, 0, 0]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [90, 0, 0]
+		},
+		"firstperson_righthand": {
+			"rotation": [90, 0, 0]
+		},
+		"firstperson_lefthand": {
+			"rotation": [90, 0, 0]
+		},
+		"gui": {
+			"rotation": [90, 0, 0]
+		}
+	}
+}

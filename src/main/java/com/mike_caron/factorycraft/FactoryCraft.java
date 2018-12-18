@@ -1,16 +1,14 @@
 package com.mike_caron.factorycraft;
 
-import com.mike_caron.mikesmodslib.integrations.MainCompatHandler;
-import com.mike_caron.mikesmodslib.network.CtoSMessage;
-import com.mike_caron.mikesmodslib.network.MessageUpdateGui;
 import com.mike_caron.factorycraft.proxy.IModProxy;
+import com.mike_caron.factorycraft.world.WorldGen;
+import com.mike_caron.mikesmodslib.integrations.MainCompatHandler;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,17 +31,19 @@ public class FactoryCraft
 
     public static final Logger logger = LogManager.getLogger(modId);
 
+    public static final CreativeTabs creativeTab = new CreativeTab();
+
     @SuppressWarnings("unused")
     @net.minecraftforge.fml.common.Mod.Instance(modId)
     public static FactoryCraft instance;
 
     @SidedProxy(
-            serverSide = "CommonProxy",
-            clientSide = "ClientProxy"
+            serverSide = "com.mike_caron.factorycraft.proxy.CommonProxy",
+            clientSide = "com.mike_caron.factorycraft.proxy.ClientProxy"
     )
     public static IModProxy proxy;
 
-    public static SimpleNetworkWrapper networkWrapper;
+    //public static SimpleNetworkWrapper networkWrapper;
 
     @net.minecraftforge.fml.common.Mod.EventHandler
     public  void preInit(FMLPreInitializationEvent event)
@@ -51,6 +51,8 @@ public class FactoryCraft
         proxy.preInit(event);
 
         MainCompatHandler.registerAllPreInit();
+
+        GameRegistry.registerWorldGenerator(new WorldGen(), 3);
     }
 
     @net.minecraftforge.fml.common.Mod.EventHandler
@@ -64,9 +66,6 @@ public class FactoryCraft
     @net.minecraftforge.fml.common.Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
-        networkWrapper = NetworkRegistry.INSTANCE.newSimpleChannel(modId);
-        networkWrapper.registerMessage(CtoSMessage.Handler.class, CtoSMessage.class, 2, Side.SERVER);
-        networkWrapper.registerMessage(MessageUpdateGui.Handler.class, MessageUpdateGui.class, 3, Side.CLIENT);
     }
 
 }

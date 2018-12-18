@@ -1,0 +1,58 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "ore": "factorycraft:block/copper_ore"
+    }
+  },
+  "variants": {
+    "size": {
+      "0": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" }
+        }
+      },
+      "1": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" }
+        }
+      },
+      "2": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" }
+        }
+      },
+      "3": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" }
+        }
+      },
+      "4": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" },
+          "stone4": { "model": "factorycraft:boulder/4" }
+        }
+      }
+    },
+    "inventory": [
+      {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" },
+          "stone4": { "model": "factorycraft:boulder/4" }
+        }
+      }
+    ]
+  }
+}

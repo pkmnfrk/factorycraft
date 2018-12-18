@@ -1,0 +1,75 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "ore": "factorycraft:block/iron_ore"
+    }
+  },
+  "variants": {
+    "size": {
+      "0": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" }
+        }
+      },
+      "1": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" }
+        }
+      },
+      "2": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" }
+        }
+      },
+      "3": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" }
+        }
+      },
+      "4": {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" },
+          "stone4": { "model": "factorycraft:boulder/4" }
+        }
+      }
+    },
+    "inventory": [
+      {
+        "submodel": {
+          "stone0": { "model": "factorycraft:boulder/0" },
+          "stone1": { "model": "factorycraft:boulder/1" },
+          "stone2": { "model": "factorycraft:boulder/2" },
+          "stone3": { "model": "factorycraft:boulder/3" },
+          "stone4": { "model": "factorycraft:boulder/4" }
+        }
+      }
+    ]
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [90, 0, 0]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [90, 0, 0]
+    },
+    "firstperson_righthand": {
+      "rotation": [90, 0, 0]
+    },
+    "firstperson_lefthand": {
+      "rotation": [90, 0, 0]
+    },
+    "gui": {
+      "rotation": [90, 0, 0]
+    }
+  }
+}
