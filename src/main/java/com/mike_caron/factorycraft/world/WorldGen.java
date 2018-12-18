@@ -7,7 +7,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
@@ -36,7 +35,7 @@ public class WorldGen
     {
         HashMap<String, NoiseGeneratorSimplex> noise = getNoise(world);
 
-        Chunk chunk = null;
+        //Chunk chunk = null;
 
         for(int z = 0; z < 4; z++)
         {
@@ -72,19 +71,23 @@ public class WorldGen
 
                     if(finalSize > 0)
                     {
-                        int posX = chunkX * 16 + x * 4 + random.nextInt(4);
-                        int posZ = chunkZ * 16 + z * 4 + random.nextInt(4);
+                        // generate in the middle of the microchunk to avoid accidentally causing extra world gen
+                        int posX = chunkX * 16 + x * 4 + random.nextInt(2) + 1;
+                        int posZ = chunkZ * 16 + z * 4 + random.nextInt(2) + 1;
 
-                        if(chunk == null)
-                        {
-                            chunk = chunkProvider.provideChunk(chunkX, chunkZ);
-                        }
+                        //if(chunk == null)
+                        //{
+                        //    chunk = chunkProvider.provideChunk(chunkX, chunkZ);
+                        //}
+                        FactoryCraft.logger.info("Generating at {},{} for chunk {},{}", posX, posZ, chunkX, chunkZ);
+                        int posY = findBestYLevel(world, posX, posZ);
 
-                        int posY = findBestYLevel(world, chunk, posX, posZ);
+                        Block block = winnerKind.getBlock();
+                        IBlockState defaultState = block.getDefaultState();
+                        IBlockState boulder = defaultState.withProperty(BoulderBlockBase.SIZE, 4);
+                        BlockPos newPos = new BlockPos(posX, posY, posZ);
 
-                        IBlockState boulder = winnerKind.block.getDefaultState().withProperty(BoulderBlockBase.SIZE, 4);
-
-                        world.setBlockState(new BlockPos(posX, posY, posZ), boulder, 2);
+                        world.setBlockState(newPos, boulder);
                     }
                 }
             }
@@ -92,7 +95,7 @@ public class WorldGen
 
     }
 
-    private int findBestYLevel(World world, Chunk chunk, int posX, int posZ)
+    private int findBestYLevel(World world, int posX, int posZ)
     {
         int lastGood = 127;
 
@@ -102,9 +105,14 @@ public class WorldGen
             IBlockState blockState = world.getBlockState(pos);
             Block block = blockState.getBlock();
             if(block.isAir(blockState, world, pos)
+                || block == Blocks.WATER
+                || block == Blocks.SNOW_LAYER
+                || block == Blocks.TALLGRASS
+                || block == Blocks.RED_FLOWER
+                || block == Blocks.YELLOW_FLOWER
                 || block.isLeaves(blockState, world, pos)
                 || block.isFoliage(world, pos)
-                || block == Blocks.WATER)
+                )
             {
                 lastGood = y;
             }

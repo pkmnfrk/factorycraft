@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -38,9 +39,9 @@ public class ModBlocks
     {
         IForgeRegistry<Block> registry = event.getRegistry();
 
-        registry.register(new BoulderBlockBase(Material.IRON, "iron_boulder"));
-        registry.register(new BoulderBlockBase(Material.IRON, "copper_boulder"));
-        registry.register(new BoulderBlockBase(Material.IRON, "coal_boulder"));
+        registry.register(new BoulderBlockBase(Material.IRON, "iron_boulder", OreKind.IRON));
+        registry.register(new BoulderBlockBase(Material.IRON, "copper_boulder", OreKind.COPPER));
+        registry.register(new BoulderBlockBase(Material.IRON, "coal_boulder", OreKind.COAL));
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
     }

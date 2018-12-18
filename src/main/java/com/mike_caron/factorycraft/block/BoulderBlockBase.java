@@ -1,14 +1,17 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -21,10 +24,14 @@ public class BoulderBlockBase
 {
     public static final PropertyInteger SIZE = PropertyInteger.create("size", 0, 4);
 
-    public BoulderBlockBase(Material material, String name)
+    private OreKind oreKind;
+
+    public BoulderBlockBase(Material material, String name, OreKind oreKind)
     {
         super(material, name);
-        this.setHardness(20f);
+        this.oreKind = oreKind;
+
+        this.setHardness(8f);
         this.setResistance(10000f);
         this.setCreativeTab(FactoryCraft.creativeTab);
 
@@ -150,5 +157,27 @@ public class BoulderBlockBase
         worldIn.setBlockState(pos, state.withProperty(SIZE, size));
 
         return true;
+    }
+
+    @Override
+    public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
+    {
+        drops.add(oreKind.ore.copy());
+    }
+
+    @Override
+    public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player)
+    {
+        super.onBlockHarvested(worldIn, pos, state, player);
+
+        //worldIn.setBlockState(pos, state, 2);
+    }
+
+    @Override
+    public void onPlayerDestroy(World worldIn, BlockPos pos, IBlockState state)
+    {
+        super.onPlayerDestroy(worldIn, pos, state);
+
+        worldIn.setBlockState(pos, state, 2);
     }
 }
