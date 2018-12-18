@@ -3,7 +3,9 @@
   "defaults": {
     "textures": {
       "ore": "factorycraft:block/iron_ore"
-    }
+    },
+    "transform": "forge:default-block",
+    "gui3d": true
   },
   "variants": {
     "size": {
@@ -54,22 +56,5 @@
         }
       }
     ]
-  },
-  "display": {
-    "thirdperson_righthand": {
-      "rotation": [90, 0, 0]
-    },
-    "thirdperson_lefthand": {
-      "rotation": [90, 0, 0]
-    },
-    "firstperson_righthand": {
-      "rotation": [90, 0, 0]
-    },
-    "firstperson_lefthand": {
-      "rotation": [90, 0, 0]
-    },
-    "gui": {
-      "rotation": [90, 0, 0]
-    }
   }
 }

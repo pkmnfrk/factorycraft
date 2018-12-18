@@ -1,3 +1,5 @@
 factorycraft.creativetab.name=FactoryCraft
 
 tile.factorycraft:iron_boulder.name=Iron Boulder
+tile.factorycraft:copper_boulder.name=Copper Boulder
+tile.factorycraft:coal_boulder.name=Coal Boulder
