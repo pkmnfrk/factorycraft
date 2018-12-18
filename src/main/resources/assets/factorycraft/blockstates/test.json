@@ -16,11 +16,9 @@
       }
     ],
     "inventory": [{
-      "submodel": {
-        "first": {
+
           "model": "factorycraft:boulder/0"
-        }
-      }
+      
     }]
   }
 }
