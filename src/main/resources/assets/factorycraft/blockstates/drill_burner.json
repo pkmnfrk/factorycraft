@@ -1,0 +1,28 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "factorycraft:drill1"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing": {
+      "south": {},
+      "west": {
+        "y": 90
+      },
+      "north": {
+        "y": 180
+      },
+      "east": {
+        "y": 270
+      }
+    },
+    "static": {
+      "true": {},
+      "false": {
+        "model": "factorycraft:drill1_shaft"
+      }
+    }
+  }
+}

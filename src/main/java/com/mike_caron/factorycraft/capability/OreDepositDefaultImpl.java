@@ -3,9 +3,9 @@ package com.mike_caron.factorycraft.capability;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.api.IOreDeposit;
+import com.mike_caron.factorycraft.util.Tuple2i;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.factorycraft.world.OreKind;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 
 import javax.annotation.Nonnull;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OreDepositDefaultImpl
     implements IOreDeposit
 {
-    private final ConcurrentHashMap<Tuple<Integer, Integer>, OreDeposit> deposits = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Tuple2i, OreDeposit> deposits = new ConcurrentHashMap<>();
     private boolean generated = false;
 
     @Override
@@ -25,7 +25,7 @@ public class OreDepositDefaultImpl
     {
         validateParameters(sx, sz);
 
-        Tuple<Integer, Integer> key = new Tuple<>(sx, sz);
+        Tuple2i key = new Tuple2i(sx, sz);
         if(deposits.containsKey(key))
             return deposits.get(key);
         return null;
@@ -33,7 +33,7 @@ public class OreDepositDefaultImpl
 
     @Override
     @Nonnull
-    public ImmutableMap<Tuple<Integer, Integer>, OreDeposit> getAllDeposits()
+    public ImmutableMap<Tuple2i, OreDeposit> getAllDeposits()
     {
         return ImmutableMap.copyOf(deposits);
     }
@@ -48,7 +48,7 @@ public class OreDepositDefaultImpl
     public void putDeposit(int sx, int sz, @Nonnull OreDeposit deposit)
     {
         validateParameters(sx, sz);
-        Tuple<Integer, Integer> key = new Tuple<>(sx, sz);
+        Tuple2i key = new Tuple2i(sx, sz);
         deposits.put(key, deposit);
     }
 
@@ -57,7 +57,7 @@ public class OreDepositDefaultImpl
     public OreKind mineOne(int sx, int sz)
     {
         validateParameters(sx, sz);
-        Tuple<Integer, Integer> key = new Tuple<>(sx, sz);
+        Tuple2i key = new Tuple2i(sx, sz);
         OreDeposit deposit = deposits.getOrDefault(key, null);
         if(deposit != null)
         {
@@ -106,7 +106,7 @@ public class OreDepositDefaultImpl
                     {
                         OreDeposit deposit = new OreDeposit(winnerKind, finalSize, finalSize);
 
-                        deposits.put(new Tuple<>(x, z), deposit);
+                        deposits.put(new Tuple2i(x, z), deposit);
                     }
                 }
             }

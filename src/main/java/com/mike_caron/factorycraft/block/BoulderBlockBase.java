@@ -1,6 +1,5 @@
 package com.mike_caron.factorycraft.block;
 
-import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.material.Material;
@@ -33,8 +32,6 @@ public class BoulderBlockBase
 
         this.setHardness(8f);
         this.setResistance(10000f);
-        this.setCreativeTab(FactoryCraft.creativeTab);
-
 
     }
 
@@ -145,7 +142,7 @@ public class BoulderBlockBase
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
-    {
+    {/*
         if(worldIn.isRemote) return true;
 
         int size = state.getValue(SIZE);
@@ -155,8 +152,8 @@ public class BoulderBlockBase
         if(size > 4) size = 0;
 
         worldIn.setBlockState(pos, state.withProperty(SIZE, size));
-
-        return true;
+*/
+        return false;
     }
 
     @Override

@@ -1,13 +1,13 @@
 package com.mike_caron.factorycraft.capability;
 
 import com.mike_caron.factorycraft.api.IOreDeposit;
+import com.mike_caron.factorycraft.util.Tuple2i;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.factorycraft.world.OreKind;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Tuple;
 import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
@@ -22,12 +22,12 @@ public class OreDepositCapabilityStorage
     {
         NBTTagList list = new NBTTagList();
 
-        for(Map.Entry<Tuple<Integer, Integer>, OreDeposit> deposit : iOreDeposit.getAllDeposits().entrySet())
+        for(Map.Entry<Tuple2i, OreDeposit> deposit : iOreDeposit.getAllDeposits().entrySet())
         {
             NBTTagCompound entry = new NBTTagCompound();
 
-            entry.setInteger("x", deposit.getKey().getFirst());
-            entry.setInteger("z", deposit.getKey().getFirst());
+            entry.setInteger("x", deposit.getKey().x);
+            entry.setInteger("z", deposit.getKey().z);
             entry.setString("kind", deposit.getValue().getOreKind().seedName);
             entry.setLong("size", deposit.getValue().getSize());
             entry.setLong("max", deposit.getValue().getMaxSize());

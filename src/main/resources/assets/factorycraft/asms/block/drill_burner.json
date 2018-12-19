@@ -1,0 +1,17 @@
+{
+  "parameters": {
+    "anim_cycle": ["/", "#cycle_length"]
+  },
+  "clips": {
+    "active": [ "apply", "factorycraft:block/drill1_shaft@active", "#anim_cycle" ],
+    "inactive": "factorycraft:block/drill1_shaft@inactive"
+  },
+  "states": [
+    "inactive", "active"
+  ],
+  "transitions": {
+    "inactive": "active",
+    "active": "inactive"
+  },
+  "start_state": "inactive"
+}

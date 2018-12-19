@@ -5,10 +5,10 @@ import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.block.BoulderBlockBase;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
+import com.mike_caron.factorycraft.util.Tuple2i;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -49,11 +49,11 @@ public class WorldGen
 
         oreDeposit.generateIfNeeded(chunkX, chunkZ, noise);
 
-        for(Map.Entry<Tuple<Integer, Integer>, OreDeposit> deposit : oreDeposit.getAllDeposits().entrySet())
+        for(Map.Entry<Tuple2i, OreDeposit> deposit : oreDeposit.getAllDeposits().entrySet())
         {
             // generate in the middle of the microchunk to avoid accidentally causing extra world gen
-            int posX = chunkX * 16 + deposit.getKey().getFirst() * 4 + random.nextInt(2) + 1;
-            int posZ = chunkZ * 16 + deposit.getKey().getSecond() * 4 + random.nextInt(2) + 1;
+            int posX = chunkX * 16 + deposit.getKey().x * 4 + random.nextInt(3) + 1;
+            int posZ = chunkZ * 16 + deposit.getKey().z * 4 + random.nextInt(3) + 1;
 
             FactoryCraft.logger.info("Generating at {},{} for chunk {},{}", posX, posZ, chunkX, chunkZ);
             int posY = findBestYLevel(world, posX, posZ);

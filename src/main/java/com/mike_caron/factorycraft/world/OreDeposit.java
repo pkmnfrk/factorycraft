@@ -27,7 +27,17 @@ public class OreDeposit
 
     public long getMaxSize() { return maxSize; }
 
-    public long mineOne() {
-        return this.size.decrementAndGet();
+    public boolean mineOne() {
+        while(true)
+        {
+            long s = this.size.get();
+
+            if(s <= 0) return false;
+
+            if (this.size.compareAndSet(s, s - 1))
+            {
+                return true;
+            }
+        }
     }
 }

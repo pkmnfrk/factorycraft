@@ -1,13 +1,18 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.tileentity.DrillTileEntity;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.model.animation.AnimationTESR;
+import net.minecraftforge.common.animation.Event;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -31,6 +36,10 @@ public class ModBlocks
     public static final BoulderBlockBase copper_boulder = null;
     @GameRegistry.ObjectHolder("coal_boulder")
     public static final BoulderBlockBase coal_boulder = null;
+
+    @GameRegistry.ObjectHolder("drill_burner")
+    public static final DrillBlock drill_burner = null;
+
     @GameRegistry.ObjectHolder("test")
     public static final BlockBase test = null;
 
@@ -42,7 +51,12 @@ public class ModBlocks
         registry.register(new BoulderBlockBase(Material.IRON, "iron_boulder", OreKind.IRON));
         registry.register(new BoulderBlockBase(Material.IRON, "copper_boulder", OreKind.COPPER));
         registry.register(new BoulderBlockBase(Material.IRON, "coal_boulder", OreKind.COAL));
+
+        registry.register(new DrillBlock("drill_burner", 0));
+
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
+
+        GameRegistry.registerTileEntity(DrillTileEntity.class, new ResourceLocation(FactoryCraft.modId, "drill"));
 
     }
 
@@ -71,6 +85,17 @@ public class ModBlocks
         //ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(dense_money), 0, new ModelResourceLocation(dense_money.getRegistryName(), "normal"));
 
         getAllBlocks().filter(b -> b instanceof BlockBase).map(b -> (BlockBase)b).forEach(BlockBase::initModel);
+
+        ClientRegistry.bindTileEntitySpecialRenderer(DrillTileEntity.class, new AnimationTESR<DrillTileEntity>()
+        {
+            @Override
+            public void handleEvents(DrillTileEntity te, float time, Iterable<Event> pastEvents)
+            {
+                super.handleEvents(te, time, pastEvents);
+
+                te.handleAnimationEvent(time, pastEvents);
+            }
+        });
     }
 
     public static Stream<Block> getAllBlocks()
