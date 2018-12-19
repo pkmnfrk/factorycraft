@@ -7,6 +7,8 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 
+import java.util.HashMap;
+
 public class OreKind
 {
     public final String seedName;
@@ -42,6 +44,16 @@ public class OreKind
         COPPER,
         COAL
     };
+
+    public final static HashMap<String, OreKind> ALL_ORES_BY_NAME = new HashMap<>();
+
+    static
+    {
+        for(OreKind kind : ALL_ORES)
+        {
+            ALL_ORES_BY_NAME.put(kind.seedName, kind);
+        }
+    }
 
     public BoulderBlockBase getBlock()
     {
