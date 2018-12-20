@@ -1,0 +1,32 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+  },
+  "variants": {
+    "normal": [{
+    }],
+    "inventory": [{
+      "model": "factorycraft:grabber1_combo"
+    }],
+    "facing": {
+      "south": {},
+      "west": {
+        "y": 90
+      },
+      "north": {
+        "y": 180
+      },
+      "east": {
+        "y": 270
+      }
+    },
+    "static": {
+      "true": {
+        "model": "factorycraft:grabber_base"
+      },
+      "false": {
+        "model": "factorycraft:grabber1"
+      }
+    }
+  }
+}

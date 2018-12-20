@@ -2,6 +2,7 @@ package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.tileentity.DrillTileEntity;
+import com.mike_caron.factorycraft.tileentity.GrabberTileEntity;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.Block;
@@ -40,6 +41,9 @@ public class ModBlocks
     @GameRegistry.ObjectHolder("drill_burner")
     public static final DrillBlock drill_burner = null;
 
+    @GameRegistry.ObjectHolder("grabber1")
+    public static final GrabberBlock grabber1 = null;
+
     @GameRegistry.ObjectHolder("test")
     public static final BlockBase test = null;
 
@@ -53,10 +57,12 @@ public class ModBlocks
         registry.register(new BoulderBlockBase(Material.IRON, "coal_boulder", OreKind.COAL));
 
         registry.register(new DrillBlock("drill_burner", 0));
+        registry.register(new GrabberBlock("grabber1", 0));
 
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
         GameRegistry.registerTileEntity(DrillTileEntity.class, new ResourceLocation(FactoryCraft.modId, "drill"));
+        GameRegistry.registerTileEntity(GrabberTileEntity.class, new ResourceLocation(FactoryCraft.modId, "grabber"));
 
     }
 
@@ -90,6 +96,17 @@ public class ModBlocks
         {
             @Override
             public void handleEvents(DrillTileEntity te, float time, Iterable<Event> pastEvents)
+            {
+                super.handleEvents(te, time, pastEvents);
+
+                te.handleAnimationEvent(time, pastEvents);
+            }
+        });
+
+        ClientRegistry.bindTileEntitySpecialRenderer(GrabberTileEntity.class, new AnimationTESR<GrabberTileEntity>()
+        {
+            @Override
+            public void handleEvents(GrabberTileEntity te, float time, Iterable<Event> pastEvents)
             {
                 super.handleEvents(te, time, pastEvents);
 

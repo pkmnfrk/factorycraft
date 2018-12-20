@@ -1,0 +1,101 @@
+{
+  "joints": {
+    "arm": {
+      "0": [1],
+      "1": [1],
+      "2": [1],
+      "3": [1],
+      "4": [1]
+    }
+  },
+  "clips": {
+    "idle": {
+      "loop": false,
+      "joint_clips": {
+      },
+      "events": {
+
+      }
+    },
+    "grab": {
+      "loop": false,
+      "joint_clips": {
+        "arm": [
+          {
+            "variable": "origin_x",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0]
+          },
+          {
+            "variable": "origin_y",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [1.5]
+          },
+          {
+            "variable": "origin_z",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0]
+          },
+          {
+            "variable": "axis_x",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [1]
+          },
+          {
+            "variable": "angle",
+            "type": "uniform",
+            "interpolation": "linear",
+            "samples": [0, 180]
+          }
+        ]
+      },
+      "events": {
+
+      }
+    },
+    "insert": {
+      "loop": false,
+      "joint_clips": {
+        "arm": [
+          {
+            "variable": "origin_x",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0]
+          },
+          {
+            "variable": "origin_y",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [1.5]
+          },
+          {
+            "variable": "origin_z",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0]
+          },
+          {
+            "variable": "axis_x",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [1]
+          },
+          {
+            "variable": "angle",
+            "type": "uniform",
+            "interpolation": "linear",
+            "samples": [180, 0]
+          }
+        ]
+      },
+      "events": {
+
+      }
+    }
+  }
+}
