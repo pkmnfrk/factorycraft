@@ -1,8 +1,8 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.client.rendering.GrabberRenderer;
 import com.mike_caron.factorycraft.tileentity.GrabberTileEntity;
-import com.mike_caron.mikesmodslib.client.AnimationAdapter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,6 +22,8 @@ public class GrabberBlock
 {
     private final int type;
 
+    private static final AxisAlignedBB collisionBoundingBox = new AxisAlignedBB(0, 0, 0, 1, 4/16f, 1);
+
     public GrabberBlock(String name, int type)
     {
         super(Material.IRON, name);
@@ -37,7 +39,7 @@ public class GrabberBlock
     {
         super.initModel();
 
-        ClientRegistry.bindTileEntitySpecialRenderer(GrabberTileEntity.class, new AnimationAdapter<>());
+        ClientRegistry.bindTileEntitySpecialRenderer(GrabberTileEntity.class, new GrabberRenderer());
     }
 
     @Nullable
@@ -50,7 +52,7 @@ public class GrabberBlock
     @Override
     public AxisAlignedBB getCachedBoundingBox()
     {
-        return new AxisAlignedBB(6/16f, 0, 6/16f, 10/16f, 4/16f, 10/16f);
+        return collisionBoundingBox;
     }
 
     @Override

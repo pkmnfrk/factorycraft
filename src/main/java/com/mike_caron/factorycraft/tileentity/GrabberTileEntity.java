@@ -36,6 +36,9 @@ public class GrabberTileEntity
     extends TileEntityBase
     implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
+
+    private static final AxisAlignedBB renderingBoundingBox = new AxisAlignedBB(-1, 0, -1, 2, 2, 2);
+
     private int type = -1;
 
     private ItemStack held = ItemStack.EMPTY;
@@ -82,12 +85,6 @@ public class GrabberTileEntity
     }
 
     @Override
-    public boolean hasFastRenderer()
-    {
-        return true;
-    }
-
-    @Override
     public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
     {
         if(capability == CapabilityAnimation.ANIMATION_CAPABILITY)
@@ -114,18 +111,14 @@ public class GrabberTileEntity
 
         type = compound.getInteger("type");
         progress = compound.getInteger("progress");
-
-        State newState = State.values()[compound.getInteger("state")];
+        maxProgress = compound.getInteger("maxProgress");
+        state = State.values()[compound.getInteger("state")];
 
         held = ItemStack.EMPTY;
         if(compound.hasKey("held"))
         {
             held = new ItemStack(compound.getCompoundTag("held"));
         }
-
-        maxProgress = compound.getInteger("maxProgress");
-        state = newState;
-
     }
 
     @Override
@@ -189,7 +182,7 @@ public class GrabberTileEntity
         int startMaxProgress = maxProgress;
         State startState = state;
 
-        maxProgress = 0;
+        maxProgress = (int)(getSpeed() * 20);
 
         switch(state)
         {
@@ -377,7 +370,31 @@ public class GrabberTileEntity
         return items.isEmpty();
     }
 
-    private EnumFacing getFacing()
+    public float getAngle()
+    {
+        switch(state)
+        {
+            case WAITING_TO_GRAB:
+                return 180f;
+            case WAITING_TO_INSERT:
+                return 0f;
+            case RETURNING:
+            case GRABBING:
+
+                float v = progress * 1f / maxProgress;
+
+                if(state == State.RETURNING)
+                {
+                    v = 1 - v;
+                }
+
+                return v * 180f;
+        }
+
+        return 0f;
+    }
+
+    public EnumFacing getFacing()
     {
         return world.getBlockState(pos).getValue(FacingBlockBase.FACING);
     }
@@ -428,6 +445,17 @@ public class GrabberTileEntity
             }
         }
         return limitedItems;
+    }
+
+    public ItemStack getHeld()
+    {
+        return held;
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox()
+    {
+        return super.getRenderBoundingBox();
     }
 
     public enum State
