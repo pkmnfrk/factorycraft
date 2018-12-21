@@ -314,7 +314,7 @@ public class GrabberTileEntity
                         newStack.setCount(1);
                         held.shrink(1);
 
-                        EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace.getY() + 0.5, outputSpace.getZ() + 0.5, newStack);
+                        EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace.getY(), outputSpace.getZ() + 0.5, newStack);
                         newItem.setVelocity(0, 0, 0);
 
                         world.spawnEntity(newItem);
