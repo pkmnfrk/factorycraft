@@ -7,12 +7,13 @@ import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -33,7 +34,7 @@ import java.util.List;
 
 public class GrabberTileEntity
     extends TileEntityBase
-    implements ITickable, IAnimationEventHandler
+    implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
     private int type = -1;
 
@@ -41,6 +42,8 @@ public class GrabberTileEntity
     private State state = State.GRABBING;
     private int progress = 0;
     private int maxProgress = 0;
+
+    private NonNullList<ItemStack> limitedItems;
 
     private IAnimationStateMachine asm;
     //private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
@@ -346,11 +349,20 @@ public class GrabberTileEntity
 
                 if(ret != itemStack)
                 {
-                    if(TileEntityFurnace.isItemFuel(itemStack) && isLimitedFuelInsertion(outputTileEntity))
+                    if(outputTileEntity instanceof ILimitedInputItems)
                     {
                         ItemStack existingStack = outputHandler.getStackInSlot(i);
-                        if(existingStack.getCount() >= 5)
-                            continue;
+
+                        for(ItemStack limited : ((ILimitedInputItems) outputTileEntity).getLimitedItems())
+                        {
+                            if(
+                                (limited.isItemEqual(existingStack) || limited.getItem() == Items.COAL)
+                                && existingStack.getCount() >= limited.getCount()
+                            )
+                            {
+                                return false;
+                            }
+                        }
                     }
                     return true;
                 }
@@ -363,11 +375,6 @@ public class GrabberTileEntity
 
 
         return items.isEmpty();
-    }
-
-    private boolean isLimitedFuelInsertion(@Nonnull TileEntity te)
-    {
-        return te instanceof GrabberTileEntity || te instanceof DrillTileEntity;
     }
 
     private EnumFacing getFacing()
@@ -407,6 +414,20 @@ public class GrabberTileEntity
         {
             FactoryCraft.logger.info("Got animation event {} at {}", event.event(), time);
         }
+    }
+
+    @Override
+    public NonNullList<ItemStack> getLimitedItems()
+    {
+        if(limitedItems == null)
+        {
+            limitedItems = NonNullList.create();
+            if(type == 0)
+            {
+                limitedItems.add(new ItemStack(Items.COAL, 5));
+            }
+        }
+        return limitedItems;
     }
 
     public enum State

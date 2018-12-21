@@ -9,6 +9,7 @@ import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,6 +17,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -38,7 +40,7 @@ import javax.annotation.Nullable;
 
 public class DrillTileEntity
     extends TileEntityBase
-    implements ITickable, IAnimationEventHandler
+    implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
     private int type = -1;
     private int progress = 0;
@@ -49,6 +51,8 @@ public class DrillTileEntity
     private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
 
     ItemStackHandler inventory;
+
+    NonNullList<ItemStack> limitedItems;
 
     public DrillTileEntity()
     {
@@ -338,7 +342,19 @@ public class DrillTileEntity
         }
     }
 
-
+    @Override
+    public NonNullList<ItemStack> getLimitedItems()
+    {
+        if(limitedItems == null)
+        {
+            limitedItems = NonNullList.create();
+            if(type == 0)
+            {
+                limitedItems.add(new ItemStack(Items.COAL, 5));
+            }
+        }
+        return limitedItems;
+    }
 
     class CustomItemStackHandler
         extends ItemStackHandler
