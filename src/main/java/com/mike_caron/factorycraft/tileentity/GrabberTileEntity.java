@@ -3,6 +3,7 @@ package com.mike_caron.factorycraft.tileentity;
 import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
+import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -30,7 +31,7 @@ import java.util.List;
 
 public class GrabberTileEntity
     extends TileEntityBase
-    implements ITickable
+    implements ITickable, IAnimationEventHandler
 {
     private int type = -1;
 
@@ -40,7 +41,8 @@ public class GrabberTileEntity
     private int maxProgress = 0;
 
     private IAnimationStateMachine asm;
-    private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
+    //private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
+    private final TimeValues.VariableValue anim_progress = new TimeValues.VariableValue(0f);
 
     public GrabberTileEntity()
     {
@@ -62,16 +64,22 @@ public class GrabberTileEntity
 
     public void loadAsm()
     {
-        String currentState = "idle";
+        String currentState = "grab";
         if(asm != null)
         {
             currentState = asm.currentState();
         }
 
-        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/grabber1.json"), ImmutableMap.of("cycle_length", anim_cycle));
+        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/grabber1.json"), ImmutableMap.of("cycle_progress", anim_progress));
 
         if(!asm.currentState() .equals(currentState))
             asm.transition(currentState);
+    }
+
+    @Override
+    public boolean hasFastRenderer()
+    {
+        return true;
     }
 
     @Override
@@ -110,31 +118,7 @@ public class GrabberTileEntity
             held = new ItemStack(compound.getCompoundTag("held"));
         }
 
-        int newMaxProgress = compound.getInteger("maxProgress");
-        if(asm != null)
-        {
-            if(newMaxProgress != maxProgress)
-            {
-                if(newMaxProgress > 0)
-                {
-                    anim_cycle.setValue(newMaxProgress / 20f);
-                }
-            }
-
-            if(newState != state)
-            {
-                switch(newState)
-                {
-                    case GRABBING:
-                        asm.transition("grab");
-                        break;
-                    case RETURNING:
-                        asm.transition("insert");
-                        break;
-                }
-            }
-        }
-        maxProgress = newMaxProgress;
+        maxProgress = compound.getInteger("maxProgress");
         state = newState;
 
     }
@@ -157,10 +141,43 @@ public class GrabberTileEntity
         return ret;
     }
 
+    private final float ANIM_MIN = 0.2f;
+    private final float ANIM_MAX = 0.75f;
+
     @Override
     public void update()
     {
         if(world.isRemote) {
+            switch(state)
+            {
+                case WAITING_TO_GRAB:
+                    anim_progress.setValue(ANIM_MIN);
+                    //FactoryCraft.logger.info( "t = 0f " );
+                    break;
+                case WAITING_TO_INSERT:
+                    anim_progress.setValue(ANIM_MAX);
+                    //FactoryCraft.logger.info( "t = 1f " );
+                    break;
+                case RETURNING:
+                case GRABBING:
+
+                    if(progress < maxProgress)
+                    {
+                        progress ++;
+
+                        float v = ANIM_MIN + (progress * 1f / maxProgress) * (ANIM_MAX - ANIM_MIN);
+
+                        if(state == State.GRABBING)
+                        {
+                            v = 1 - v;
+                        }
+
+                        anim_progress.setValue(v);
+                        //FactoryCraft.logger.info( "t = " + v );
+
+                    }
+            }
+
             return;
         }
 
@@ -318,10 +335,10 @@ public class GrabberTileEntity
             markAndNotify();
         }
 
-        if(startState != state)
-        {
-            FactoryCraft.logger.info("Transition from {} to {} @ {}", startState, state, progress);
-        }
+        //if(startState != state)
+        //{
+        //    FactoryCraft.logger.info("Transition from {} to {} @ {}", startState, state, progress);
+        //}
     }
 
     private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler)

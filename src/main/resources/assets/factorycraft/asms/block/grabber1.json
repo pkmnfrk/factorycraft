@@ -1,19 +1,15 @@
 {
   "parameters": {
-    "anim_cycle": ["/", "#cycle_length"]
+
   },
   "clips": {
-    "idle": "factorycraft:block/grabber1@idle",
-    "grab": [ "apply", "factorycraft:block/grabber1@grab", "#anim_cycle" ],
-    "insert": [ "apply", "factorycraft:block/grabber1@insert", "#anim_cycle" ]
+    "grab": [ "apply", "factorycraft:block/grabber1@grab", "#cycle_progress" ]
   },
   "states": [
-    "idle", "grab", "insert"
+    "grab"
   ],
   "transitions": {
-    "idle": ["grab", "insert"],
-    "grab": "insert",
-    "insert": ["idle", "grab"]
+    "grab": "grab"
   },
-  "start_state": "idle"
+  "start_state": "grab"
 }

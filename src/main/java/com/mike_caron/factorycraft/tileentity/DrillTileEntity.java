@@ -6,6 +6,7 @@ import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.block.DrillBlock;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.world.OreDeposit;
+import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
 
 public class DrillTileEntity
     extends TileEntityBase
-    implements ITickable
+    implements ITickable, IAnimationEventHandler
 {
     private int type = -1;
     private int progress = 0;
