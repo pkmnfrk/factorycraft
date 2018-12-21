@@ -10,7 +10,7 @@
   },
   "clips": {
     "idle": {
-      "loop": false,
+      "loop": "false",
       "joint_clips": {
       },
       "events": {
@@ -18,26 +18,26 @@
       }
     },
     "grab": {
-      "loop": false,
+      "loop": "false",
       "joint_clips": {
         "arm": [
           {
             "variable": "origin_x",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [0]
+            "samples": [0.5]
           },
           {
             "variable": "origin_y",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [1.5]
+            "samples": [0.09375]
           },
           {
             "variable": "origin_z",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [0]
+            "samples": [0.5]
           },
           {
             "variable": "axis_x",
@@ -49,7 +49,7 @@
             "variable": "angle",
             "type": "uniform",
             "interpolation": "linear",
-            "samples": [0, 180]
+            "samples": [180, 90, 0]
           }
         ]
       },
@@ -58,26 +58,26 @@
       }
     },
     "insert": {
-      "loop": false,
+      "loop": "false",
       "joint_clips": {
         "arm": [
           {
             "variable": "origin_x",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [0]
+            "samples": [0.5]
           },
           {
             "variable": "origin_y",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [1.5]
+            "samples": [0.09375]
           },
           {
             "variable": "origin_z",
             "type": "uniform",
             "interpolation": "nearest",
-            "samples": [0]
+            "samples": [0.5]
           },
           {
             "variable": "axis_x",
@@ -89,7 +89,7 @@
             "variable": "angle",
             "type": "uniform",
             "interpolation": "linear",
-            "samples": [180, 0]
+            "samples": [0, 90, 180]
           }
         ]
       },
