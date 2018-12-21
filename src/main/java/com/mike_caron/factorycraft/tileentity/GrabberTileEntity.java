@@ -8,9 +8,11 @@ import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
@@ -27,6 +29,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,8 +48,11 @@ public class GrabberTileEntity
     private State state = State.GRABBING;
     private int progress = 0;
     private int maxProgress = 0;
+    private int fuelTicks = 200;
 
     private NonNullList<ItemStack> limitedItems;
+    private ItemStackHandler itemStackHandler;
+
 
     private IAnimationStateMachine asm;
     //private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
@@ -68,6 +74,7 @@ public class GrabberTileEntity
     {
         this();
         this.type = type;
+        itemStackHandler = new CustomItemStackHandler();
     }
 
     public void loadAsm()
@@ -113,12 +120,22 @@ public class GrabberTileEntity
         progress = compound.getInteger("progress");
         maxProgress = compound.getInteger("maxProgress");
         state = State.values()[compound.getInteger("state")];
+        if(compound.hasKey("fuelTicks"))
+            fuelTicks = compound.getInteger("fuelTicks");
 
         held = ItemStack.EMPTY;
         if(compound.hasKey("held"))
         {
             held = new ItemStack(compound.getCompoundTag("held"));
         }
+
+        if(itemStackHandler == null)
+        {
+            itemStackHandler = new CustomItemStackHandler();
+        }
+        if(compound.hasKey("inv"))
+            itemStackHandler.deserializeNBT(compound.getCompoundTag("inv"));
+
     }
 
     @Override
@@ -135,6 +152,9 @@ public class GrabberTileEntity
             ret.setTag("held", held.serializeNBT());
         }
         ret.setInteger("state", state.ordinal());
+        ret.setTag("inv", itemStackHandler.serializeNBT());
+        if(type == 0)
+            ret.setInteger("fuelTicks", fuelTicks);
 
         return ret;
     }
@@ -184,139 +204,165 @@ public class GrabberTileEntity
 
         maxProgress = (int)(getSpeed() * 20);
 
-        switch(state)
+        consumeFuelIfNeeded();
+
+        if(hasFuel())
         {
-            case GRABBING:
-                maxProgress = (int)(getSpeed() * 20);
-                progress += 1;
-                if(progress >= maxProgress)
-                {
-                    state = State.WAITING_TO_GRAB;
-                }
-                break;
-            case RETURNING:
-                maxProgress = (int)(getSpeed() * 20);
-                progress += 1;
-                if(progress >= maxProgress)
-                {
-                    state = State.WAITING_TO_INSERT;
-                }
-                break;
-            case WAITING_TO_GRAB:
+            switch (state)
             {
-                //ok, look for an item source.
-                BlockPos inputSpace = getInputSpace();
-                TileEntity inputTileEntity = world.getTileEntity(inputSpace);
-                IItemHandler inputItemHandler = null;
+                case GRABBING:
+                    consumeFuelTicksIfNeeded();
+                    progress += 1;
 
-                ItemStack prospectiveItem = ItemStack.EMPTY;
-                int slotNum = -1;
-                EntityItem looseItem = null;
-
-                BlockPos outputSpace = getOutputSpace();
-                TileEntity outputTileEntity = world.getTileEntity(outputSpace);
-                IItemHandler outputItemHandler = null;
-
-                if (inputTileEntity != null && inputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite()))
-                {
-                    inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
-                }
-
-                if (outputTileEntity != null && outputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing()))
-                {
-                    outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
-                }
-
-
-                if (inputItemHandler != null)
-                {
-                    for (int i = 0; i < inputItemHandler.getSlots(); i++)
+                    if (progress >= maxProgress)
                     {
-                        prospectiveItem = inputItemHandler.extractItem(i, 1, true);
-                        if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputTileEntity))
+                        state = State.WAITING_TO_GRAB;
+                    }
+                    break;
+                case RETURNING:
+                    consumeFuelTicksIfNeeded();
+                    progress += 1;
+
+                    if(type == 0 && !held.isEmpty() && TileEntityFurnace.isItemFuel(held) && (progress > maxProgress / 2 && progress < maxProgress / 2 + 2))
+                    {
+                        ItemStack fuel = itemStackHandler.getStackInSlot(0);
+                        ItemStack newFuel;
+                        if(fuel.getCount() < 5)
                         {
-                            slotNum = i;
-                            break;
+                            newFuel = itemStackHandler.insertItem(0, held, true);
+
+                            if(newFuel != held)
+                            {
+                                held = itemStackHandler.insertItem(0, held, false);
+                                state = State.GRABBING;
+                                progress = maxProgress - progress;
+                            }
                         }
                     }
-                }
 
-                if (prospectiveItem.isEmpty())
-                {
-                    //no inventory, or it's empty... maybe there's a loose item?
-                    List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(inputSpace));
-
-                    for (EntityItem item : items)
+                    if (progress >= maxProgress)
                     {
-                        if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputTileEntity))
+                        state = State.WAITING_TO_INSERT;
+                    }
+                    break;
+                case WAITING_TO_GRAB:
+                {
+                    //ok, look for an item source.
+                    BlockPos inputSpace = getInputSpace();
+                    TileEntity inputTileEntity = world.getTileEntity(inputSpace);
+                    IItemHandler inputItemHandler = null;
+
+                    ItemStack prospectiveItem = ItemStack.EMPTY;
+                    int slotNum = -1;
+                    EntityItem looseItem = null;
+
+                    BlockPos outputSpace = getOutputSpace();
+                    TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    IItemHandler outputItemHandler = null;
+
+                    if (inputTileEntity != null && inputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite()))
+                    {
+                        inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+                    }
+
+                    if (outputTileEntity != null && outputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing()))
+                    {
+                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
+                    }
+
+
+                    if (inputItemHandler != null)
+                    {
+                        for (int i = 0; i < inputItemHandler.getSlots(); i++)
                         {
-                            prospectiveItem = item.getItem();
-                            looseItem = item;
-                            break;
+                            prospectiveItem = inputItemHandler.extractItem(i, 1, true);
+                            if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputTileEntity))
+                            {
+                                slotNum = i;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if(!prospectiveItem.isEmpty())
-                {
-                    //cool beans!
-                    if(slotNum != -1)
+                    if (prospectiveItem.isEmpty())
                     {
-                        held = inputItemHandler.extractItem(slotNum, 1, false);
+                        //no inventory, or it's empty... maybe there's a loose item?
+                        List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(inputSpace));
+
+                        for (EntityItem item : items)
+                        {
+                            if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputTileEntity))
+                            {
+                                prospectiveItem = item.getItem();
+                                looseItem = item;
+                                break;
+                            }
+                        }
                     }
-                    else if(looseItem != null)
-                    {
-                        held = prospectiveItem.copy();
-                        held.setCount(1);
 
-                        looseItem.getItem().shrink(held.getCount());
+                    if (!prospectiveItem.isEmpty())
+                    {
+                        //cool beans!
+                        if (slotNum != -1)
+                        {
+                            held = inputItemHandler.extractItem(slotNum, 1, false);
+                        }
+                        else if (looseItem != null)
+                        {
+                            held = prospectiveItem.copy();
+                            held.setCount(1);
+
+                            looseItem.getItem().shrink(held.getCount());
+                        }
                     }
-                }
 
-                if(!held.isEmpty())
-                {
-                    state = State.RETURNING;
-                    progress = 0;
-                }
-            }
-            break;
-            case WAITING_TO_INSERT:
-                BlockPos outputSpace = getOutputSpace();
-                TileEntity outputTileEntity = world.getTileEntity(outputSpace);
-                IItemHandler outputItemHandler = null;
-
-                if(outputTileEntity != null)
-                {
-                    outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
-                }
-
-                if(outputItemHandler != null)
-                {
-                    held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
-                }
-                else
-                {
-                    List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(outputSpace));
-                    if(items.isEmpty())
+                    if (!held.isEmpty())
                     {
-                        ItemStack newStack = held.copy();
-                        newStack.setCount(1);
-                        held.shrink(1);
-
-                        EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace.getY(), outputSpace.getZ() + 0.5, newStack);
-                        newItem.setVelocity(0, 0, 0);
-
-                        world.spawnEntity(newItem);
+                        consumeFuelTicksIfNeeded();
+                        state = State.RETURNING;
+                        progress = 0;
                     }
                 }
-
-                if(held.isEmpty())
-                {
-                    state = State.GRABBING;
-                    progress = 0;
-                }
-
                 break;
+                case WAITING_TO_INSERT:
+                    BlockPos outputSpace = getOutputSpace();
+                    TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    IItemHandler outputItemHandler = null;
+
+                    if (outputTileEntity != null)
+                    {
+                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
+                    }
+
+                    if (outputItemHandler != null)
+                    {
+                        held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
+                    }
+                    else
+                    {
+                        List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(outputSpace));
+                        if (items.isEmpty())
+                        {
+                            ItemStack newStack = held.copy();
+                            newStack.setCount(1);
+                            held.shrink(1);
+
+                            EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace.getY(), outputSpace.getZ() + 0.5, newStack);
+                            newItem.setVelocity(0, 0, 0);
+
+                            world.spawnEntity(newItem);
+                        }
+                    }
+
+                    if (held.isEmpty())
+                    {
+                        consumeFuelTicksIfNeeded();
+                        state = State.GRABBING;
+                        progress = 0;
+                    }
+
+                    break;
+            }
         }
 
         if(startMaxProgress != maxProgress || startState != state)
@@ -328,6 +374,42 @@ public class GrabberTileEntity
         //{
         //    FactoryCraft.logger.info("Transition from {} to {} @ {}", startState, state, progress);
         //}
+    }
+
+    private void consumeFuelIfNeeded()
+    {
+        if(type != 0)
+            return;
+
+        if(fuelTicks > 0) return;
+
+        ItemStack fuel = itemStackHandler.getStackInSlot(0);
+        if(fuel.isEmpty()) return;
+
+        fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
+
+        Item item = fuel.getItem();
+        fuel.shrink(1);
+        if (fuel.isEmpty()) {
+            ItemStack item1 = item.getContainerItem(fuel);
+            itemStackHandler.setStackInSlot(0, item1);
+        }
+    }
+
+    private void consumeFuelTicksIfNeeded()
+    {
+        if(type != 0)
+            return;
+
+        if(fuelTicks > 0)
+            fuelTicks -= 1;
+    }
+
+    private boolean hasFuel()
+    {
+        if(type == 0)
+            return fuelTicks > 0;
+        return true;
     }
 
     private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler, @Nullable TileEntity outputTileEntity)
@@ -458,11 +540,51 @@ public class GrabberTileEntity
         return super.getRenderBoundingBox();
     }
 
+    public State getState()
+    {
+        return state;
+    }
+
+    public int getFuelTicks()
+    {
+        return fuelTicks;
+    }
+
     public enum State
     {
         GRABBING,          // -> WAITING_TO_GRAB
         WAITING_TO_GRAB,   // -> RETURNING
         RETURNING,         // -> WAITING_TO_INSERT
         WAITING_TO_INSERT  // -> GRABBIGN
+    }
+
+    class CustomItemStackHandler
+        extends ItemStackHandler
+    {
+        public CustomItemStackHandler()
+        {
+            super(type == 0 ? 1 : 0);
+        }
+
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            super.onContentsChanged(slot);
+
+            markDirty();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack)
+        {
+            if(!super.isItemValid(slot, stack)) return false;
+
+            if(slot == 0) //fuel
+            {
+                return TileEntityFurnace.isItemFuel(stack);
+            }
+
+            return false;
+        }
     }
 }

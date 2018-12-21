@@ -1,0 +1,34 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "0": "factorycraft:block/grabber0",
+      "particle": "factorycraft:block/grabber0"
+    },
+    "model": "factorycraft:grabber1_combo"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing": {
+      "south": {},
+      "west": {
+        "y": 90
+      },
+      "north": {
+        "y": 180
+      },
+      "east": {
+        "y": 270
+      }
+    },
+    "static": {
+      "true": {
+        "model": "factorycraft:grabber_base"
+      },
+      "false": {
+        "model": "factorycraft:grabber1"
+      }
+    }
+  }
+}

@@ -1,13 +1,11 @@
 {
   "forge_marker": 1,
   "defaults": {
+    "model": "factorycraft:grabber1_combo"
   },
   "variants": {
-    "normal": [{
-    }],
-    "inventory": [{
-      "model": "factorycraft:grabber1_combo"
-    }],
+    "normal": [{}],
+    "inventory": [{}],
     "facing": {
       "south": {},
       "west": {

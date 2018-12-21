@@ -35,8 +35,10 @@ public class ModBlocks
     @GameRegistry.ObjectHolder("drill_burner")
     public static final DrillBlock drill_burner = null;
 
-    @GameRegistry.ObjectHolder("grabber1")
-    public static final GrabberBlock grabber1 = null;
+    @GameRegistry.ObjectHolder("grabber_burner")
+    public static final GrabberBlock grabber_burner = null;
+    @GameRegistry.ObjectHolder("grabber")
+    public static final GrabberBlock grabber = null;
 
     @GameRegistry.ObjectHolder("test")
     public static final BlockBase test = null;
@@ -51,7 +53,8 @@ public class ModBlocks
         registry.register(new BoulderBlockBase(Material.IRON, "coal_boulder", OreKind.COAL));
 
         registry.register(new DrillBlock("drill_burner", 0));
-        registry.register(new GrabberBlock("grabber1", 0));
+        registry.register(new GrabberBlock("grabber_burner", 0));
+        registry.register(new GrabberBlock("grabber", 1));
 
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
@@ -74,4 +77,6 @@ public class ModBlocks
     {
         ModBlocksBase.registerModels(ModBlocks.class);
     }
+
+
 }
