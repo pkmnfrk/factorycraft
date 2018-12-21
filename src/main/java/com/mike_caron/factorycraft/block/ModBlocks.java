@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.tileentity.DrillTileEntity;
 import com.mike_caron.factorycraft.tileentity.GrabberTileEntity;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
@@ -54,7 +55,10 @@ public class ModBlocks
 
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
+        GameRegistry.registerTileEntity(DrillTileEntity.class, new ResourceLocation(FactoryCraft.modId, "drill"));
         GameRegistry.registerTileEntity(GrabberTileEntity.class, new ResourceLocation(FactoryCraft.modId, "grabber"));
+
+        ModBlocksBase.registerBlocks(ModBlocksBase.class);
 
     }
 

@@ -5,10 +5,12 @@ import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
+import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
@@ -235,7 +237,7 @@ public class GrabberTileEntity
                     for (int i = 0; i < inputItemHandler.getSlots(); i++)
                     {
                         prospectiveItem = inputItemHandler.extractItem(i, 1, true);
-                        if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler))
+                        if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputTileEntity))
                         {
                             slotNum = i;
                             break;
@@ -250,7 +252,7 @@ public class GrabberTileEntity
 
                     for (EntityItem item : items)
                     {
-                        if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler))
+                        if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputTileEntity))
                         {
                             prospectiveItem = item.getItem();
                             looseItem = item;
@@ -294,16 +296,7 @@ public class GrabberTileEntity
 
                 if(outputItemHandler != null)
                 {
-                    for(int i = 0; i < outputItemHandler.getSlots(); i++)
-                    {
-                        ItemStack newHeld = outputItemHandler.insertItem(i, held, true);
-
-                        if(newHeld != held)
-                        {
-                            held = outputItemHandler.insertItem(i, held, false);
-                            break;
-                        }
-                    }
+                    held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
                 }
                 else
                 {
@@ -341,23 +334,40 @@ public class GrabberTileEntity
         //}
     }
 
-    private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler)
+    private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler, @Nullable TileEntity outputTileEntity)
     {
         if(outputHandler != null)
         {
+            assert outputTileEntity != null;
+
             for(int i = 0; i < outputHandler.getSlots(); i++)
             {
                 ItemStack ret = outputHandler.insertItem(i, itemStack, true);
 
                 if(ret != itemStack)
+                {
+                    if(TileEntityFurnace.isItemFuel(itemStack) && isLimitedFuelInsertion(outputTileEntity))
+                    {
+                        ItemStack existingStack = outputHandler.getStackInSlot(i);
+                        if(existingStack.getCount() >= 5)
+                            continue;
+                    }
                     return true;
+                }
             }
+
+            return false;
         }
 
         List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(outputSpace));
 
 
         return items.isEmpty();
+    }
+
+    private boolean isLimitedFuelInsertion(@Nonnull TileEntity te)
+    {
+        return te instanceof GrabberTileEntity || te instanceof DrillTileEntity;
     }
 
     private EnumFacing getFacing()

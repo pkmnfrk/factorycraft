@@ -9,10 +9,15 @@ import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.chunk.Chunk;
@@ -24,6 +29,9 @@ import net.minecraftforge.common.model.animation.CapabilityAnimation;
 import net.minecraftforge.common.model.animation.IAnimationStateMachine;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,9 +43,12 @@ public class DrillTileEntity
     private int type = -1;
     private int progress = 0;
     private int maxProgress = 0;
+    private int fuelTicks = 0;
 
     private IAnimationStateMachine asm;
     private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
+
+    ItemStackHandler inventory;
 
     public DrillTileEntity()
     {
@@ -55,6 +66,7 @@ public class DrillTileEntity
     {
         this();
         this.type = type;
+        this.inventory = new CustomItemStackHandler();
     }
 
     public void loadAsm()
@@ -77,6 +89,8 @@ public class DrillTileEntity
         if(capability == CapabilityAnimation.ANIMATION_CAPABILITY)
             return true;
 
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
+            return true;
         return super.hasCapability(capability, facing);
     }
 
@@ -88,6 +102,9 @@ public class DrillTileEntity
         {
             return CapabilityAnimation.ANIMATION_CAPABILITY.cast(asm);
         }
+        else if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
+
         return super.getCapability(capability, facing);
     }
 
@@ -98,6 +115,15 @@ public class DrillTileEntity
 
         type = compound.getInteger("type");
         progress = compound.getInteger("progress");
+        if(type == 0)
+        {
+            fuelTicks = compound.getInteger("fuelTicks");
+        }
+        if(inventory == null)
+        {
+            inventory = new CustomItemStackHandler();
+        }
+        inventory.deserializeNBT(compound.getCompoundTag("inv"));
 
         int newMaxProgress = compound.getInteger("maxProgress");
         if(asm != null)
@@ -129,6 +155,11 @@ public class DrillTileEntity
         ret.setInteger("type", type);
         ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
+        if(type == 0)
+        {
+            ret.setInteger("fuelTicks", fuelTicks);
+        }
+        ret.setTag("inv", inventory.serializeNBT());
 
         return ret;
     }
@@ -142,29 +173,67 @@ public class DrillTileEntity
 
         int startMaxProgress = maxProgress;
 
-        IOreDeposit oreDeposit = getIOreDeposit();
-        if(oreDeposit != null)
+        maxProgress = 0;
+
+        if(type == 0 && fuelTicks <= 0)
         {
-            OreDeposit deposit = getDeposit(oreDeposit);
-
-            if (deposit != null)
+            ItemStack fuel = inventory.getStackInSlot(0);
+            if(!fuel.isEmpty())
             {
-                maxProgress = getTicksPerOre(deposit);
+                fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
 
-                progress += 1;
-                markDirty();
-
-                if (progress >= maxProgress)
-                {
-                    if (deposit.mineOne())
-                    {
-                        Vec3d output = getOutput();
-                        ItemUtils.dropItem(world, deposit.getOreKind().ore.copy(), output.x, output.y, output.z);
-                    }
-
-                    progress = 0;
+                Item item = fuel.getItem();
+                fuel.shrink(1);
+                if (fuel.isEmpty()) {
+                    ItemStack item1 = item.getContainerItem(fuel);
+                    inventory.setStackInSlot(0, item1);
                 }
+            }
+        }
 
+        IItemHandler outputInventory = getOuptutInventory();
+
+        if(type != 0 || fuelTicks > 0)
+        {
+
+            IOreDeposit oreDeposit = getIOreDeposit();
+            if (oreDeposit != null)
+            {
+                OreDeposit deposit = getDeposit(oreDeposit);
+
+                if (deposit != null && deposit.getSize() > 0)
+                {
+                    if(outputInventory == null || canInsert(deposit.getOreKind().ore, outputInventory))
+                    {
+                        maxProgress = getTicksPerOre(deposit);
+
+                        progress += 1;
+                        if (type == 0)
+                        {
+                            fuelTicks -= 1;
+                        }
+                        markDirty();
+
+                        if (progress >= maxProgress)
+                        {
+                            if (deposit.mineOne())
+                            {
+                                if(outputInventory != null)
+                                {
+                                    ItemUtils.insertItemIfPossible(deposit.getOreKind().ore, outputInventory);
+                                }
+                                else
+                                {
+                                    Vec3d output = getOutput();
+
+                                    ItemUtils.dropItem(world, deposit.getOreKind().ore.copy(), output.x, output.y, output.z);
+                                }
+                            }
+
+                            progress = 0;
+                        }
+                    }
+                }
             }
         }
 
@@ -174,11 +243,42 @@ public class DrillTileEntity
         }
     }
 
+    private boolean canInsert(ItemStack stack, IItemHandler handler)
+    {
+        for(int i = 0; i < handler.getSlots(); i++)
+        {
+            if(handler.insertItem(i, stack, true).isEmpty())
+                return true;
+        }
+        return false;
+    }
+
+    private IItemHandler getOuptutInventory()
+    {
+        Vec3d output = getOutput();
+
+        BlockPos blockPos = new BlockPos(output);
+
+        TileEntity te = world.getTileEntity(blockPos);
+
+        if(te != null)
+        {
+            return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+        }
+
+        return null;
+    }
+
     private Vec3d getOutput()
     {
-        EnumFacing facing = world.getBlockState(pos).getValue(DrillBlock.FACING);
+        EnumFacing facing = getFacing();
         Vec3i vec = facing.getDirectionVec();
         return new Vec3d(pos.getX() + (vec.getX() * 1.3 + 1) / 2.0, pos.getY() + 0.25, pos.getZ() + (vec.getZ() * 1.3 + 1) / 2.0);
+    }
+
+    private EnumFacing getFacing()
+    {
+        return world.getBlockState(pos).getValue(DrillBlock.FACING);
     }
 
     private int getTicksPerOre(OreDeposit deposit)
@@ -235,6 +335,38 @@ public class DrillTileEntity
         for(Event event : pastEvents)
         {
             FactoryCraft.logger.info("Got animation event {} at {}", event.event(), time);
+        }
+    }
+
+
+
+    class CustomItemStackHandler
+        extends ItemStackHandler
+    {
+        public CustomItemStackHandler()
+        {
+            super(type == 0 ? 1 : 0);
+        }
+
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            super.onContentsChanged(slot);
+
+            markDirty();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack)
+        {
+            if(!super.isItemValid(slot, stack)) return false;
+
+            if(slot == 0) //fuel
+            {
+                return TileEntityFurnace.isItemFuel(stack);
+            }
+
+            return false;
         }
     }
 }

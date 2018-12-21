@@ -27,7 +27,17 @@ public class OreDepositDefaultImpl
 
         Tuple2i key = new Tuple2i(sx, sz);
         if(deposits.containsKey(key))
-            return deposits.get(key);
+        {
+            OreDeposit ret = deposits.get(key);
+
+            if(ret.getSize() == 0)
+            {
+                deposits.remove(key);
+                return null;
+            }
+
+            return ret;
+        }
         return null;
     }
 

@@ -50,7 +50,7 @@ public class GrabberBlock
     @Override
     public AxisAlignedBB getCachedBoundingBox()
     {
-        return new AxisAlignedBB(0, 0, 0, 1, 1, 1);
+        return new AxisAlignedBB(6/16f, 0, 6/16f, 10/16f, 4/16f, 10/16f);
     }
 
     @Override

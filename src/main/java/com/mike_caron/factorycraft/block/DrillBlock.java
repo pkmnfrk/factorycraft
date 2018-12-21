@@ -3,7 +3,6 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.tileentity.DrillTileEntity;
 import com.mike_caron.mikesmodslib.block.MachineBlockBase;
-import com.mike_caron.mikesmodslib.block.ModBlocksBase;
 import com.mike_caron.mikesmodslib.client.AnimationAdapter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -25,7 +24,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-@ModBlocksBase.RegisterTileEntity(DrillTileEntity.class)
 public class DrillBlock
     extends MachineBlockBase
 {
