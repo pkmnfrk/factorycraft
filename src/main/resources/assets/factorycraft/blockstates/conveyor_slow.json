@@ -1,0 +1,38 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "factorycraft:conveyor",
+    "textures": {
+      "0": "factorycraft:block/conveyor_turn_yellow"
+    }
+  },
+  "variants": {
+    "normal": [{
+      "textures": {
+        "0": "factorycraft:block/conveyor_yellow"
+      }
+    }],
+    "inventory": [{
+      "textures": {
+        "0": "factorycraft:block/conveyor_yellow"
+      }
+    }],
+
+    "facing=south,turn=s": [{ "y":   0, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_yellow" } }],
+    "facing=west,turn=s":  [{ "y":  90, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_yellow" } }],
+    "facing=north,turn=s": [{ "y": 180, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_yellow" } }],
+    "facing=east,turn=s":  [{ "y": 270, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_yellow" } }],
+
+    "facing=south,turn=r": [{ "y":  90, "model": "factorycraft:conveyor_turn_l" }],
+    "facing=west,turn=r":  [{ "y": 180, "model": "factorycraft:conveyor_turn_l" }],
+    "facing=north,turn=r": [{ "y": 270, "model": "factorycraft:conveyor_turn_l" }],
+    "facing=east,turn=r":  [{ "y":   0, "model": "factorycraft:conveyor_turn_l" }],
+
+    "facing=south,turn=l": [{ "y": 270, "model": "factorycraft:conveyor_turn_r" }],
+    "facing=west,turn=l":  [{ "y":   0, "model": "factorycraft:conveyor_turn_r" }],
+    "facing=north,turn=l": [{ "y":  90, "model": "factorycraft:conveyor_turn_r" }],
+    "facing=east,turn=l":  [{ "y": 180, "model": "factorycraft:conveyor_turn_r" }]
+
+
+  }
+}

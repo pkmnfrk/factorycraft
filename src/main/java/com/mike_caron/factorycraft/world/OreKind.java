@@ -1,6 +1,6 @@
 package com.mike_caron.factorycraft.world;
 
-import com.mike_caron.factorycraft.block.BoulderBlockBase;
+import com.mike_caron.factorycraft.block.BlockBoulder;
 import com.mike_caron.factorycraft.block.ModBlocks;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -59,7 +59,7 @@ public class OreKind
         }
     }
 
-    public BoulderBlockBase getBlock()
+    public BlockBoulder getBlock()
     {
         switch(seedName)
         {

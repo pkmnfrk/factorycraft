@@ -1,9 +1,7 @@
 package com.mike_caron.factorycraft.tileentity;
 
-import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
-import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
@@ -16,17 +14,10 @@ import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.animation.Event;
-import net.minecraftforge.common.animation.TimeValues;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.model.animation.CapabilityAnimation;
-import net.minecraftforge.common.model.animation.IAnimationStateMachine;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -35,11 +26,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class GrabberTileEntity
+public class TileEntityGrabber
     extends TileEntityBase
-    implements ITickable, IAnimationEventHandler, ILimitedInputItems
+    implements ITickable, ILimitedInputItems
 {
-
     private static final AxisAlignedBB renderingBoundingBox = new AxisAlignedBB(-1, 0, -1, 2, 2, 2);
 
     private int type = -1;
@@ -53,48 +43,21 @@ public class GrabberTileEntity
     private NonNullList<ItemStack> limitedItems;
     private ItemStackHandler itemStackHandler;
 
-
-    private IAnimationStateMachine asm;
-    //private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
-    private final TimeValues.VariableValue anim_progress = new TimeValues.VariableValue(0f);
-
-    public GrabberTileEntity()
+    public TileEntityGrabber()
     {
-        if(FMLCommonHandler.instance().getSide() == Side.CLIENT)
-        {
-            loadAsm();
-        }
-        else
-        {
-            asm = null;
-        }
     }
 
-    public GrabberTileEntity(int type)
+    public TileEntityGrabber(int type)
     {
         this();
         this.type = type;
         itemStackHandler = new CustomItemStackHandler();
     }
 
-    public void loadAsm()
-    {
-        String currentState = "grab";
-        if(asm != null)
-        {
-            currentState = asm.currentState();
-        }
-
-        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/grabber1.json"), ImmutableMap.of("cycle_progress", anim_progress));
-
-        if(!asm.currentState() .equals(currentState))
-            asm.transition(currentState);
-    }
-
     @Override
-    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
+    public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
     {
-        if(capability == CapabilityAnimation.ANIMATION_CAPABILITY)
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
             return true;
 
         return super.hasCapability(capability, facing);
@@ -102,11 +65,11 @@ public class GrabberTileEntity
 
     @Nullable
     @Override
-    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
+    public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
     {
-        if(capability == CapabilityAnimation.ANIMATION_CAPABILITY)
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
         {
-            return CapabilityAnimation.ANIMATION_CAPABILITY.cast(asm);
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(itemStackHandler);
         }
         return super.getCapability(capability, facing);
     }
@@ -159,40 +122,18 @@ public class GrabberTileEntity
         return ret;
     }
 
-    private final float ANIM_MIN = 0.2f;
-    private final float ANIM_MAX = 0.75f;
-
     @Override
     public void update()
     {
         if(world.isRemote) {
             switch(state)
             {
-                case WAITING_TO_GRAB:
-                    anim_progress.setValue(ANIM_MIN);
-                    //FactoryCraft.logger.info( "t = 0f " );
-                    break;
-                case WAITING_TO_INSERT:
-                    anim_progress.setValue(ANIM_MAX);
-                    //FactoryCraft.logger.info( "t = 1f " );
-                    break;
                 case RETURNING:
                 case GRABBING:
 
                     if(progress < maxProgress)
                     {
                         progress ++;
-
-                        float v = ANIM_MIN + (progress * 1f / maxProgress) * (ANIM_MAX - ANIM_MIN);
-
-                        if(state == State.GRABBING)
-                        {
-                            v = 1 - v;
-                        }
-
-                        anim_progress.setValue(v);
-                        //FactoryCraft.logger.info( "t = " + v );
-
                     }
             }
 
@@ -386,7 +327,7 @@ public class GrabberTileEntity
         ItemStack fuel = itemStackHandler.getStackInSlot(0);
         if(fuel.isEmpty()) return;
 
-        fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
+        fuelTicks += TileEntityFurnace.getItemBurnTime(fuel) / 10;
 
         Item item = fuel.getItem();
         fuel.shrink(1);
@@ -452,7 +393,7 @@ public class GrabberTileEntity
         return items.isEmpty();
     }
 
-    public float getAngle()
+    public float getAngle(float partial)
     {
         switch(state)
         {
@@ -463,7 +404,7 @@ public class GrabberTileEntity
             case RETURNING:
             case GRABBING:
 
-                float v = progress * 1f / maxProgress;
+                float v = (progress + partial) / maxProgress;
 
                 if(state == State.RETURNING)
                 {
@@ -532,12 +473,6 @@ public class GrabberTileEntity
     public ItemStack getHeld()
     {
         return held;
-    }
-
-    @Override
-    public AxisAlignedBB getRenderBoundingBox()
-    {
-        return super.getRenderBoundingBox();
     }
 
     public State getState()

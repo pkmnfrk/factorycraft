@@ -3,7 +3,7 @@ package com.mike_caron.factorycraft.tileentity;
 import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IOreDeposit;
-import com.mike_caron.factorycraft.block.DrillBlock;
+import com.mike_caron.factorycraft.block.BlockDrill;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
@@ -38,7 +38,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class DrillTileEntity
+public class TileEntityDrill
     extends TileEntityBase
     implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
@@ -54,7 +54,7 @@ public class DrillTileEntity
 
     NonNullList<ItemStack> limitedItems;
 
-    public DrillTileEntity()
+    public TileEntityDrill()
     {
         if(FMLCommonHandler.instance().getSide() == Side.CLIENT)
         {
@@ -66,7 +66,7 @@ public class DrillTileEntity
         }
     }
 
-    public DrillTileEntity(int type)
+    public TileEntityDrill(int type)
     {
         this();
         this.type = type;
@@ -282,7 +282,7 @@ public class DrillTileEntity
 
     private EnumFacing getFacing()
     {
-        return world.getBlockState(pos).getValue(DrillBlock.FACING);
+        return world.getBlockState(pos).getValue(BlockDrill.FACING);
     }
 
     private int getTicksPerOre(OreDeposit deposit)

@@ -18,14 +18,14 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-public class BoulderBlockBase
+public class BlockBoulder
     extends BlockBase
 {
     public static final PropertyInteger SIZE = PropertyInteger.create("size", 0, 4);
 
     private OreKind oreKind;
 
-    public BoulderBlockBase(Material material, String name, OreKind oreKind)
+    public BlockBoulder(Material material, String name, OreKind oreKind)
     {
         super(material, name);
         this.oreKind = oreKind;

@@ -1,7 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
-import com.mike_caron.factorycraft.tileentity.DrillTileEntity;
+import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
 import com.mike_caron.mikesmodslib.block.MachineBlockBase;
 import com.mike_caron.mikesmodslib.client.AnimationAdapter;
 import net.minecraft.block.material.Material;
@@ -24,14 +24,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DrillBlock
+public class BlockDrill
     extends MachineBlockBase
 {
     private final int type;
 
     private AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0, 0, 0, 1, 0.5, 1);
 
-    public DrillBlock(String name, int type)
+    public BlockDrill(String name, int type)
     {
         super(Material.IRON, name);
         setHardness(5f);
@@ -46,7 +46,7 @@ public class DrillBlock
     {
         super.initModel();
 
-        ClientRegistry.bindTileEntitySpecialRenderer(DrillTileEntity.class, new AnimationAdapter<>());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDrill.class, new AnimationAdapter<>());
     }
 
     @Override
@@ -133,7 +133,7 @@ public class DrillBlock
     @Override
     public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state)
     {
-        return new DrillTileEntity(type);
+        return new TileEntityDrill(type);
     }
 
     @Override
@@ -142,7 +142,7 @@ public class DrillBlock
         if(!super.canPlaceBlockAt(worldIn, pos)) return false;
 
         IBlockState below = worldIn.getBlockState(pos.add(0, -1, 0));
-        return below.getBlock() instanceof BoulderBlockBase;
+        return below.getBlock() instanceof BlockBoulder;
 
     }
 
@@ -163,7 +163,7 @@ public class DrillBlock
     {
         if(worldIn.isRemote)
         {
-            DrillTileEntity te = (DrillTileEntity)worldIn.getTileEntity(pos);
+            TileEntityDrill te = (TileEntityDrill)worldIn.getTileEntity(pos);
             te.loadAsm();
             return true;
         }

@@ -3,7 +3,7 @@ package com.mike_caron.factorycraft.world;
 import com.google.common.base.Preconditions;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IOreDeposit;
-import com.mike_caron.factorycraft.block.BoulderBlockBase;
+import com.mike_caron.factorycraft.block.BlockBoulder;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.util.Tuple2i;
 import net.minecraft.block.Block;
@@ -60,7 +60,7 @@ public class WorldGen
 
             Block block = deposit.getValue().getOreKind().getBlock();
             IBlockState defaultState = block.getDefaultState();
-            IBlockState boulder = defaultState.withProperty(BoulderBlockBase.SIZE, 4);
+            IBlockState boulder = defaultState.withProperty(BlockBoulder.SIZE, 4);
             BlockPos newPos = new BlockPos(posX, posY, posZ);
 
             world.setBlockState(newPos, boulder);

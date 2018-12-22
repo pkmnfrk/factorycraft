@@ -7,6 +7,12 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
+
+plugins {
+    id 'java'
+    id 'idea'
+}
+
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
@@ -61,6 +67,8 @@ repositories {
         ivyPattern "https://maven.tterrag.com/[module]-[revision].[ext]"
         artifactPattern "https://media.forgecdn.net/files/${mikesmodslib_cf}/[module]-[revision](-[classifier]).[ext]"
     }
+
+    mavenCentral()
 }
 
 dependencies {
@@ -74,6 +82,10 @@ dependencies {
     deobfProvided "mezz.jei:jei_${mcversion}:${jei_version}:api"
     // at runtime, use the full JEI jar
     runtime "mezz.jei:jei_${mcversion}:${jei_version}"
+
+    testCompile('org.junit.jupiter:junit-jupiter-api:5.3.2')
+    testCompile('org.junit.jupiter:junit-jupiter-params:5.3.2')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.3.2')
 }
 
 processResources {
@@ -102,6 +114,13 @@ task buildDeobf(type: Jar, dependsOn: 'jar') {
 }
 artifacts {
     archives buildDeobf
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 def getVersionString()

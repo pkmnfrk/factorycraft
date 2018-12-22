@@ -1,6 +1,6 @@
 package com.mike_caron.factorycraft.client.rendering;
 
-import com.mike_caron.factorycraft.tileentity.GrabberTileEntity;
+import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -9,29 +9,26 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.client.model.animation.Animation;
-import net.minecraftforge.common.animation.Event;
-import net.minecraftforge.common.model.IModelState;
-import net.minecraftforge.common.model.animation.CapabilityAnimation;
-import net.minecraftforge.common.model.animation.IAnimationStateMachine;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.Properties;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 
 public class GrabberRenderer
-    extends TileEntitySpecialRenderer<GrabberTileEntity>
+    extends TileEntitySpecialRenderer<TileEntityGrabber>
 {
     protected static BlockRendererDispatcher blockRenderer;
 
     @Override
-    public void render(GrabberTileEntity te, double x, double y, double z, float partialTicks, int destroyStage, float partial) {
+    public void render(TileEntityGrabber te, double x, double y, double z, float partialTicks, int destroyStage, float partial) {
+        if (blockRenderer == null) {
+            blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+        }
+
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -46,19 +43,35 @@ public class GrabberRenderer
         }
 
         buffer.begin(7, DefaultVertexFormats.BLOCK);
-        this.renderTileEntityFast(te, x, y, z, partialTicks, destroyStage, partial, buffer);
-        buffer.setTranslation(0.0D, 0.0D, 0.0D);
+
+        //buffer.setTranslation(x, y, z);
+        //buffer.setTranslation(-0.5, 2f/16f, 0.5);
+        this.renderArm(te, x, y, z, partialTicks, destroyStage, partial, buffer);
+        buffer.setTranslation(0, 0, 0);
+
+        Vec3i tFacing = te.getFacing().getDirectionVec();
+        Vec3i rFacing = te.getFacing().rotateY().getDirectionVec();
+
+        float angle = (float)te.getAngle(partialTicks);
+
+        BlockPos pos = te.getPos();
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
+        GlStateManager.translate(0.5, 1.5f/16f, 0.5);
+        GlStateManager.scale(tFacing.getX() != 0 ? -1 : 1, -1, tFacing.getZ() != 0 ? -1 : 1);
+        GlStateManager.rotate(angle, rFacing.getX(), 0, rFacing.getZ());
+        GlStateManager.translate(-0.5, -1.5f/16f, -0.5);
+
         tessellator.draw();
+
+        GlStateManager.popMatrix();
         RenderHelper.enableStandardItemLighting();
 
 
         if(!te.getHeld().isEmpty())
         {
-            Vec3i tFacing = te.getFacing().getDirectionVec();
-            Vec3i rFacing = te.getFacing().rotateY().getDirectionVec();
             final float armLength = 1f;
-
-            float angle = (float)te.getAngle() / 180f * 195f;
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(x + 0.5, y + 1/16f, z + 0.5);
@@ -75,11 +88,9 @@ public class GrabberRenderer
 
     }
 
-    public void renderTileEntityFast(@Nonnull GrabberTileEntity te, double x, double y, double z, float partialTick, int destroyStage, float partial, @Nonnull BufferBuilder renderer)
+    public void renderArm(@Nonnull TileEntityGrabber te, double x, double y, double z, float partialTick, int destroyStage, float partial, @Nonnull BufferBuilder renderer)
     {
-        if (blockRenderer == null) {
-            blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
-        }
+
         BlockPos pos = te.getPos();
         IBlockAccess world = MinecraftForgeClient.getRegionRenderCache(te.getWorld(), pos);
         IBlockState state = world.getBlockState(pos);
@@ -87,20 +98,17 @@ public class GrabberRenderer
             state = state.withProperty(Properties.StaticProperty, false);
         }
 
-        if (state instanceof IExtendedBlockState) {
-            IExtendedBlockState exState = (IExtendedBlockState)state;
-            if (exState.getUnlistedNames().contains(Properties.AnimationProperty)) {
-                float time = Animation.getWorldTime(this.getWorld(), partialTick);
-                IAnimationStateMachine capability = (IAnimationStateMachine)te.getCapability(CapabilityAnimation.ANIMATION_CAPABILITY, (EnumFacing)null);
-                if (capability != null) {
-                    Pair<IModelState, Iterable<Event>> pair = capability.apply(time);
-                    te.handleAnimationEvent(time, pair.getRight());
-                    IBakedModel model = blockRenderer.getBlockModelShapes().getModelForState(exState.getClean());
-                    exState = exState.withProperty(Properties.AnimationProperty, pair.getLeft());
-                    renderer.setTranslation(x - (double)pos.getX(), y - (double)pos.getY(), z - (double)pos.getZ());
-                    blockRenderer.getBlockModelRenderer().renderModel(world, model, exState, pos, renderer, false);
-                }
-            }
-        }
+        IExtendedBlockState exState = (IExtendedBlockState)state;
+
+        //float time = Animation.getWorldTime(this.getWorld(), partialTick);
+
+        IBakedModel model = blockRenderer.getBlockModelShapes().getModelForState(exState.getClean());
+
+        //renderer.setTranslation(x - (double)pos.getX(), y - (double)pos.getY(), z - (double)pos.getZ());
+
+        blockRenderer.getBlockModelRenderer().renderModel(world, model, exState, BlockPos.ORIGIN, renderer, false);
+
+
+
     }
 }
