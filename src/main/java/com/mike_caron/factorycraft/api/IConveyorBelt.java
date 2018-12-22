@@ -13,6 +13,8 @@ public interface IConveyorBelt
     int totalItems();
     @Nonnull
     ItemStack extract(int track, float position, boolean simulate);
+    ItemStack extract(int track, float minPosition, float maxPosition, boolean simulate);
+
     @Nonnull
     ItemStack insert(int track, float position, @Nonnull ItemStack itemStack, boolean simulate);
 

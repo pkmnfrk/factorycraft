@@ -198,6 +198,7 @@ public class TileEntityGrabber
 
                     ItemStack prospectiveItem = ItemStack.EMPTY;
                     int slotNum = -1;
+                    float beltPos = 0f;
                     EntityItem looseItem = null;
 
                     BlockPos outputSpace = getOutputSpace();
@@ -222,13 +223,16 @@ public class TileEntityGrabber
 
                     if(inputConveyorBelt != null)
                     {
-                        int track = inputConveyorBelt.trackClosestTo(getFacing());
-                        prospectiveItem = inputConveyorBelt.extract(track, inputConveyorBelt.trackLength(track) / 2, true);
+                        int track = inputConveyorBelt.trackClosestTo(getFacing().getOpposite());
+                        beltPos = inputConveyorBelt.trackLength(track) / 2;
+
+                        prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
 
                         if(prospectiveItem.isEmpty())
                         {
                             track = 1-track;
-                            prospectiveItem = inputConveyorBelt.extract(track, inputConveyorBelt.trackLength(track) / 2, true);
+                            beltPos = inputConveyorBelt.trackLength(track) / 2;
+                            prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
                         }
 
                         if(!prospectiveItem.isEmpty())
@@ -270,7 +274,7 @@ public class TileEntityGrabber
                         //cool beans!
                         if(slotNum != -1 && inputConveyorBelt != null)
                         {
-                            held = inputConveyorBelt.extract(slotNum, inputConveyorBelt.trackLength(slotNum) / 2, false);
+                            held = inputConveyorBelt.extract(slotNum, beltPos, beltPos * 2, false);
                         }
                         else if (slotNum != -1)
                         {

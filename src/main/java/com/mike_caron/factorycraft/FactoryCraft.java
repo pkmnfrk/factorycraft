@@ -2,6 +2,7 @@ package com.mike_caron.factorycraft;
 
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.IOreDeposit;
+import com.mike_caron.factorycraft.capability.CapabilityConveyorStorage;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityStorage;
 import com.mike_caron.factorycraft.capability.OreDepositDefaultImpl;
@@ -77,7 +78,7 @@ public class FactoryCraft
         proxy.init(event);
 
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
-        CapabilityManager.INSTANCE.register(IConveyorBelt.class, null, () -> null);
+        CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
 
         MainCompatHandler.registerAllInit();
     }

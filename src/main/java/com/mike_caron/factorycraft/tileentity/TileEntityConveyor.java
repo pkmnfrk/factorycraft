@@ -39,7 +39,7 @@ public class TileEntityConveyor
 {
     public int type;
 
-    final List<Track> tracks = new ArrayList<>();
+    public final List<Track> tracks = new ArrayList<>();
     public static final float ITEM_RADIUS = 4.5f / 32f;
 
     public BlockConveyor.EnumTurn cachedTurn;
@@ -84,7 +84,14 @@ public class TileEntityConveyor
     @Nonnull
     public ItemStack extract(int track, float position, boolean simulate)
     {
-        return tracks.get(track).extract(position, simulate);
+        return tracks.get(track).extract(position, position, simulate);
+    }
+
+    @Override
+    @Nonnull
+    public ItemStack extract(int track, float minPosition, float maxPosition, boolean simulate)
+    {
+        return tracks.get(track).extract(minPosition, maxPosition, simulate);
     }
 
     @Override
@@ -100,7 +107,6 @@ public class TileEntityConveyor
         if(lastUpdate == lastUpdateTick)
             return;
 
-        updateTrackLengths();
         //debugPopluation();
 
         //so basically, we want to follow the chain of conveyors and update them
@@ -135,6 +141,8 @@ public class TileEntityConveyor
     private void updateInternal()
     {
         this.lastUpdate = lastUpdateTick;
+
+        updateTrackLengths();
 
         for(Track t : tracks)
         {
@@ -241,14 +249,7 @@ public class TileEntityConveyor
 
     public void updateTrackLengths()
     {
-        if(cachedTurn == null)
-        {
-            IBlockState state = world.getBlockState(pos);
-
-            cachedTurn = state.getValue(BlockConveyor.TURN);
-        }
-
-        updateTrackLengths(cachedTurn);
+        updateTrackLengths(getTurn());
 
     }
 
@@ -277,6 +278,10 @@ public class TileEntityConveyor
         {
             tracks.get(1).setLength(37f/32f);
             tracks.get(0).setLength(13.5f/32f);
+        }
+        else
+        {
+            throw new Error("Failed");
         }
     }
 
@@ -315,8 +320,7 @@ public class TileEntityConveyor
     @Override
     protected void markAndNotify()
     {
-        if(cachedTurn == null)
-            super.markAndNotify();
+        super.markAndNotify();
     }
 
     public void notifyChange()
@@ -376,34 +380,51 @@ public class TileEntityConveyor
             {
                 case Straight:
 
-                    x = (0.25f + 0.5f * track);
+                    x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
-
+                    angle = facing.getOpposite().getHorizontalAngle();
                     northPoint = new Vec2f(x, z);
                     break;
                 case Left:
-                case Right:
+                {
                     final float v = tracks.get(track).maxLength;
-                    final float v2 = v / 2f;
-                    if(position <= v2)
-                    {
-                        x = track * 0.5f + 0.25f + position / v2 * (0.75f - track * 0.5f);
-                        z = 0.75f - track * 0.5f;
-                    }
-                    else
-                    {
-                        x = 0.25f + track * 0.5f;
-                        z = (position - v2) / v2 * (0.75f - track * 0.5f);
-                    }
-                    angle = (float)MathHelper.clampedLerp(0, -90, position / v2);
 
-                    northPoint = new Vec2f(x, z);
+                    float radius = track == 0 ? 0.75f : 0.25f;
+                    angle = -(float) MathHelper.clampedLerp(-90, 0, position / v);
+
+                    northPoint = new Vec2f(
+                        radius * (float) Math.cos(Math.toRadians(- angle)),
+                        radius * (float) Math.sin(Math.toRadians(- angle)) + 1
+                    );
+
+                    angle += facing.getHorizontalAngle() + 180;
+                }
+                    break;
+                case Right:
+                {
+                    final float v = tracks.get(track).maxLength;
+
+                    float radius = track == 0 ? 0.25f : 0.75f;
+                    angle = (float) MathHelper.clampedLerp(0,  90, position / v);
+
+                    northPoint = new Vec2f(
+                        radius * (float) Math.cos(Math.toRadians(angle - 90)),
+                        radius * (float) Math.sin(Math.toRadians(angle - 90)) + 1
+                    );
+
+                    angle += facing.getHorizontalAngle() + 90;
+                }
                     break;
                 default:
                     throw new Error("Impossible");
             }
 
-            northPoint = new Vec2f(1f - northPoint.x, 1f - northPoint.y);
+            if(facing.getAxis() == EnumFacing.Axis.Z)
+            {
+                angle +=  180;
+            }
+
+            northPoint = new Vec2f(northPoint.x, northPoint.y);
 
             if(turn == BlockConveyor.EnumTurn.Right)
             {
@@ -412,7 +433,7 @@ public class TileEntityConveyor
 
             Vec2f ret = rotate(CENTER, facing.getHorizontalAngle(), northPoint);
 
-            return new Vec3f(ret.x, angle + facing.getHorizontalAngle(), ret.y);
+            return new Vec3f(ret.x, angle, ret.y);
         }
 
         public void visitAllPositions(BiConsumer<ItemStack, Vec3f> visitor)
@@ -444,7 +465,7 @@ public class TileEntityConveyor
         }
     }
 
-    class Track
+    public class Track
         implements INBTSerializable<NBTTagCompound>
     {
         private final List<Tuple2<Float, ItemStack>> items = new ArrayList<>();
@@ -512,14 +533,14 @@ public class TileEntityConveyor
             return ret;
         }
 
-        public ItemStack extract(float position, boolean simulate)
+        public ItemStack extract(float minPosition, float maxPosition, boolean simulate)
         {
             ItemStack ret = ItemStack.EMPTY;
             Tuple2<Float, ItemStack> ret_item = null;
 
             for(Tuple2<Float, ItemStack> item : items)
             {
-                if(position > item.getFirst() - ITEM_RADIUS && position < item.getFirst() + ITEM_RADIUS)
+                if(minPosition < item.getFirst() + ITEM_RADIUS && maxPosition > item.getFirst() - ITEM_RADIUS)
                 {
                     ret = item.getSecond();
                     ret_item = item;
@@ -623,6 +644,7 @@ public class TileEntityConveyor
 
         private void updateNone(float speed)
         {
+            boolean changed = false;
             float lastPos = maxLength;
 
             for(int i = items.size() - 1; i >= 0; i--)
@@ -634,18 +656,26 @@ public class TileEntityConveyor
                 if(newPos + ITEM_RADIUS > lastPos)
                 {
                     newPos = lastPos - ITEM_RADIUS;
-                    lastPos = newPos - ITEM_RADIUS;
                 }
+
+                lastPos = newPos - ITEM_RADIUS;
 
                 if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<Float, ItemStack>(newPos, item.second));
+                    changed = true;
                 }
+            }
+
+            if(changed)
+            {
+                markAndNotify();
             }
         }
 
         private void updateAligned(float speed, Track nextTrack)
         {
+            boolean changed = false;
             float lastPos = maxLength + 1f;
 
             if(nextTrack.items.size() > 0)
@@ -660,8 +690,9 @@ public class TileEntityConveyor
                 if(newPos + ITEM_RADIUS > lastPos)
                 {
                     newPos = lastPos - ITEM_RADIUS;
-                    lastPos = newPos - ITEM_RADIUS;
                 }
+
+                lastPos = newPos - ITEM_RADIUS;
 
                 if(newPos > maxLength)
                 {
@@ -669,21 +700,32 @@ public class TileEntityConveyor
                     items.remove(item);
                     i -= 1;
                     ItemStack res = nextTrack.insert(newPos, item.second, false);
-                    assert res.isEmpty();
+                    if(!res.isEmpty())
+                    {
+                        throw new Error("Just ate an item");
+                    }
+                    changed = true;
 
                 }
                 else if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
+                    changed = true;
                 }
+            }
+
+            if(changed)
+            {
+                markAndNotify();
             }
         }
 
         private void updateMisaligned(float speed, Track nextTrack, float myPos)
         {
+            boolean changed = false;
             float lastPos = maxLength;
 
-            ItemStack nextItem = nextTrack.extract(myPos, true);
+            ItemStack nextItem = nextTrack.extract(myPos - ITEM_RADIUS, myPos + ITEM_RADIUS, true);
 
             if(nextItem.isEmpty())
             {
@@ -699,22 +741,32 @@ public class TileEntityConveyor
                 if(newPos + ITEM_RADIUS > lastPos)
                 {
                     newPos = lastPos - ITEM_RADIUS;
-                    lastPos = newPos - ITEM_RADIUS;
                 }
+
+                lastPos = newPos - ITEM_RADIUS;
 
                 if(newPos > maxLength)
                 {
-                    newPos = myPos;
                     items.remove(item);
                     i -= 1;
-                    ItemStack res = nextTrack.insert(newPos, item.second, false);
-                    assert res.isEmpty();
+                    ItemStack res = nextTrack.insert(myPos, item.second, false);
+                    if(!res.isEmpty())
+                    {
+                        throw new Error("Just ate an item");
+                    }
+                    changed = true;
 
                 }
                 else if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
+                    changed = true;
                 }
+            }
+
+            if(changed)
+            {
+                markAndNotify();
             }
         }
 
@@ -726,11 +778,11 @@ public class TileEntityConveyor
 
             if(otherTurn == BlockConveyor.EnumTurn.Right)
             {
-                otherFacing = otherFacing.rotateYCCW();
+                otherFacing = otherFacing.rotateY();
             }
             else if(otherTurn == BlockConveyor.EnumTurn.Left)
             {
-                otherFacing = otherFacing.rotateY();
+                otherFacing = otherFacing.rotateYCCW();
             }
 
             return otherFacing == myFacing;

@@ -3,12 +3,17 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.client.rendering.ConveyorRenderer;
 import com.mike_caron.factorycraft.tileentity.TileEntityConveyor;
+import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.block.MachineBlockBase;
+import mcjty.theoneprobe.api.IProbeHitData;
+import mcjty.theoneprobe.api.IProbeInfo;
+import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -293,7 +298,21 @@ public class BlockConveyor
         return false;
     }
 
+    @Override
+    protected void addBlockProbeInfo(ProbeMode mode, IProbeInfo info, EntityPlayer player, World world, IBlockState blockState, IProbeHitData data)
+    {
+        TileEntityConveyor te = (TileEntityConveyor)world.getTileEntity(data.getPos());
 
+        for(TileEntityConveyor.Track t : te.tracks)
+        {
+            IProbeInfo in = info.vertical();
+
+            for(Tuple2<Float, ItemStack> item : t.getItems())
+            {
+                in = in.horizontal().item(item.second).text(Float.toString(item.first));
+            }
+        }
+    }
 
     public enum EnumTurn
         implements IStringSerializable
