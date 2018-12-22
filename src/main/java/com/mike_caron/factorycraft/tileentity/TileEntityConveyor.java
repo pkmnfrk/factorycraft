@@ -2,6 +2,7 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.block.BlockConveyor;
+import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.sun.javafx.geom.Vec3f;
@@ -16,6 +17,7 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fml.common.Mod;
@@ -23,6 +25,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -98,7 +101,7 @@ public class TileEntityConveyor
             return;
 
         updateTrackLengths();
-        debugPopluation();
+        //debugPopluation();
 
         //so basically, we want to follow the chain of conveyors and update them
         //from the furthest point, back up to us.
@@ -319,6 +322,23 @@ public class TileEntityConveyor
     public void notifyChange()
     {
         cachedTurn = null;
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
+    {
+        if(capability == CapabilityConveyor.CONVEYOR)
+            return true;
+        return super.hasCapability(capability, facing);
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
+    {
+        if(capability == CapabilityConveyor.CONVEYOR)
+            return CapabilityConveyor.CONVEYOR.cast(this);
+        return super.getCapability(capability, facing);
     }
 
     public class ItemPosition
@@ -559,7 +579,7 @@ public class TileEntityConveyor
             //   appropriate spot on the closest track
 
             TileEntityConveyor nextConveyor = findNextConveyor(pos);
-            float speed = type / 32f;
+            float speed = (type + 1) / 32f;
 
 
             if(nextConveyor != null)
