@@ -1,6 +1,8 @@
 package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.api.IConveyorBelt;
+import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
@@ -191,6 +193,7 @@ public class TileEntityGrabber
                     //ok, look for an item source.
                     BlockPos inputSpace = getInputSpace();
                     TileEntity inputTileEntity = world.getTileEntity(inputSpace);
+                    IConveyorBelt inputConveyorBelt = null;
                     IItemHandler inputItemHandler = null;
 
                     ItemStack prospectiveItem = ItemStack.EMPTY;
@@ -199,20 +202,41 @@ public class TileEntityGrabber
 
                     BlockPos outputSpace = getOutputSpace();
                     TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    IConveyorBelt outputConveyorBelt = null;
                     IItemHandler outputItemHandler = null;
 
-                    if (inputTileEntity != null && inputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite()))
+                    if (inputTileEntity != null)
                     {
-                        inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+                        inputConveyorBelt = inputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
+                        if(inputConveyorBelt == null)
+                            inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
                     }
 
-                    if (outputTileEntity != null && outputTileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing()))
+                    if (outputTileEntity != null)
                     {
-                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
+                        outputConveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
+                        if(outputConveyorBelt == null)
+                            outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
                     }
 
 
-                    if (inputItemHandler != null)
+                    if(inputConveyorBelt != null)
+                    {
+                        int track = inputConveyorBelt.trackClosestTo(getFacing());
+                        prospectiveItem = inputConveyorBelt.extract(track, inputConveyorBelt.trackLength(track) / 2, true);
+
+                        if(prospectiveItem.isEmpty())
+                        {
+                            track = 1-track;
+                            prospectiveItem = inputConveyorBelt.extract(track, inputConveyorBelt.trackLength(track) / 2, true);
+                        }
+
+                        if(!prospectiveItem.isEmpty())
+                        {
+                            slotNum = track;
+                        }
+                    }
+                    else if (inputItemHandler != null)
                     {
                         for (int i = 0; i < inputItemHandler.getSlots(); i++)
                         {
@@ -244,7 +268,11 @@ public class TileEntityGrabber
                     if (!prospectiveItem.isEmpty())
                     {
                         //cool beans!
-                        if (slotNum != -1)
+                        if(slotNum != -1 && inputConveyorBelt != null)
+                        {
+                            held = inputConveyorBelt.extract(slotNum, inputConveyorBelt.trackLength(slotNum) / 2, false);
+                        }
+                        else if (slotNum != -1)
                         {
                             held = inputItemHandler.extractItem(slotNum, 1, false);
                         }
@@ -268,14 +296,21 @@ public class TileEntityGrabber
                 case WAITING_TO_INSERT:
                     BlockPos outputSpace = getOutputSpace();
                     TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    IConveyorBelt conveyorBelt = null;
                     IItemHandler outputItemHandler = null;
 
                     if (outputTileEntity != null)
                     {
+                        conveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, null);
                         outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
                     }
 
-                    if (outputItemHandler != null)
+                    if(conveyorBelt != null)
+                    {
+                        int oppositeTrack = conveyorBelt.trackClosestTo(getFacing().getOpposite());
+                        held = conveyorBelt.insert(oppositeTrack, conveyorBelt.trackLength(oppositeTrack) / 2f, held, false);
+                    }
+                    else if (outputItemHandler != null)
                     {
                         held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
                     }

@@ -78,7 +78,7 @@ public class FactoryCraft
 
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, null, () -> null);
-        
+
         MainCompatHandler.registerAllInit();
     }
 

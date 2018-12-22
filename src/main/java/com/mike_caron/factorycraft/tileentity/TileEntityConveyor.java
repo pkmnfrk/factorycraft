@@ -82,14 +82,14 @@ public class TileEntityConveyor
 
     @Override
     @Nonnull
-    public ItemStack extract(int track, int position, boolean simulate)
+    public ItemStack extract(int track, float position, boolean simulate)
     {
         return tracks.get(track).extract(position, simulate);
     }
 
     @Override
     @Nonnull
-    public ItemStack insert(int track, int position, @Nonnull ItemStack itemStack, boolean simulate)
+    public ItemStack insert(int track, float position, @Nonnull ItemStack itemStack, boolean simulate)
     {
         return tracks.get(track).insert(position, itemStack, simulate);
     }
@@ -339,6 +339,19 @@ public class TileEntityConveyor
         if(capability == CapabilityConveyor.CONVEYOR)
             return CapabilityConveyor.CONVEYOR.cast(this);
         return super.getCapability(capability, facing);
+    }
+
+    @Override
+    public int trackClosestTo(@Nonnull EnumFacing facing)
+    {
+        EnumFacing myFacing = getFacing();
+        if(facing == myFacing || facing == myFacing.getOpposite())
+            return 0;
+
+        if(facing == myFacing.rotateY())
+            return 0;
+
+        return 1;
     }
 
     public class ItemPosition
