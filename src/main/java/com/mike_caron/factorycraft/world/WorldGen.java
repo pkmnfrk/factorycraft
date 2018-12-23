@@ -55,7 +55,7 @@ public class WorldGen
             int posX = chunkX * 16 + deposit.getKey().x * 4 + random.nextInt(3) + 1;
             int posZ = chunkZ * 16 + deposit.getKey().z * 4 + random.nextInt(3) + 1;
 
-            FactoryCraft.logger.info("Generating at {},{} for chunk {},{}", posX, posZ, chunkX, chunkZ);
+            //FactoryCraft.logger.info("Generating at {},{} for chunk {},{}", posX, posZ, chunkX, chunkZ);
             int posY = findBestYLevel(world, posX, posZ);
 
             Block block = deposit.getValue().getOreKind().getBlock();

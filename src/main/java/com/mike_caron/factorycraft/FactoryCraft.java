@@ -70,7 +70,6 @@ public class FactoryCraft
 
         MainCompatHandler.registerAllPreInit();
 
-        OreKind.registerDefaultOreKinds();
         GameRegistry.registerWorldGenerator(new WorldGen(), 3);
     }
 
@@ -78,6 +77,8 @@ public class FactoryCraft
     public void init(FMLInitializationEvent event)
     {
         proxy.init(event);
+
+        OreKind.registerDefaultOreKinds();
 
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
