@@ -5,6 +5,7 @@ import com.mike_caron.factorycraft.block.ModBlocks;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 
 import java.util.ArrayList;
@@ -23,8 +24,9 @@ public class OreKind
     public final double miningTime;
     private final Supplier<BlockBoulder> blockSupplier;
     private BlockBoulder block;
+    private double minDistance;
 
-    private OreKind(String seedName, double scale, double threshold, long magnitude, ItemStack ore, double hardness, double miningTime, Supplier<BlockBoulder> block)
+    private OreKind(String seedName, double scale, double threshold, long magnitude, ItemStack ore, double hardness, double miningTime, double minDistance, Supplier<BlockBoulder> block)
     {
         this.seedName = seedName;
         this.scale = scale;
@@ -34,11 +36,27 @@ public class OreKind
         this.hardness = hardness;
         this.miningTime = miningTime;
         this.blockSupplier = block;
+        this.minDistance = minDistance;
     }
 
-    public double getSample(NoiseGeneratorSimplex noise, int x, int z)
+    public double getSample(NoiseGeneratorSimplex noise, int x, int z, BlockPos origin)
     {
-        double sample = noise.getValue(x / scale, z / scale);
+        double distance = origin.getDistance(x, origin.getY(), z);
+
+        if(distance < minDistance)
+            return 0.0;
+
+        double mod = Math.log10(distance * 2);
+
+        if(mod < 1)
+            mod = 1;
+
+        mod *= scale;
+
+        mod /= 3;
+        mod *= 4;
+
+        double sample = noise.getValue((x - origin.getX()) / mod, (z - origin.getZ()) / mod);
 
         if(sample < threshold) return 0.0;
 
@@ -57,16 +75,16 @@ public class OreKind
 
     public static void registerDefaultOreKinds()
     {
-        IRON = registerOreKind("iron", 64, 0.7, 10000, 0.9, 2, new ItemStack(Blocks.IRON_ORE, 1), () -> ModBlocks.boulder_iron);
-        COPPER = registerOreKind("copper", 48, 0.7, 15000, 0.9, 2, new ItemStack(Blocks.GOLD_ORE, 1),  () -> ModBlocks.boulder_copper);
-        COAL = registerOreKind("coal", 32, 0.7, 8000, 0.9, 2, new ItemStack(Items.COAL, 1),  () -> ModBlocks.boulder_coal);
-        STONE = registerOreKind("stone", 24, 0.75, 9000, 0.4, 2, new ItemStack(Blocks.COBBLESTONE, 1),  () -> ModBlocks.boulder_stone);
-        URANIUM = registerOreKind("uranium", 128, 0.80, 4000, 0.9, 4, new ItemStack(Blocks.PUMPKIN, 1),  () -> ModBlocks.boulder_uranium);
+        IRON = registerOreKind("iron", 64, 0.7, 10000, 0.9, 2, 200, new ItemStack(Blocks.IRON_ORE, 1), () -> ModBlocks.boulder_iron);
+        COPPER = registerOreKind("copper", 48, 0.7, 15000, 0.9, 2, 200, new ItemStack(Blocks.GOLD_ORE, 1),  () -> ModBlocks.boulder_copper);
+        COAL = registerOreKind("coal", 32, 0.7, 8000, 0.9, 2, 200, new ItemStack(Items.COAL, 1),  () -> ModBlocks.boulder_coal);
+        STONE = registerOreKind("stone", 24, 0.75, 9000, 0.4, 2, 200, new ItemStack(Blocks.COBBLESTONE, 1),  () -> ModBlocks.boulder_stone);
+        URANIUM = registerOreKind("uranium", 128, 0.80, 4000, 0.9, 4, 1000, new ItemStack(Blocks.PUMPKIN, 1),  () -> ModBlocks.boulder_uranium);
     }
 
-    public static OreKind registerOreKind(String seedName, double scale, double threshold, long magnitude, double hardness, double miningTime, ItemStack ore, Supplier<BlockBoulder> block)
+    public static OreKind registerOreKind(String seedName, double scale, double threshold, long magnitude, double hardness, double miningTime, double minDistance, ItemStack ore, Supplier<BlockBoulder> block)
     {
-        OreKind oreKind = new OreKind(seedName, scale, threshold, magnitude, ore, hardness, miningTime, block);
+        OreKind oreKind = new OreKind(seedName, scale, threshold, magnitude, ore, hardness, miningTime, minDistance, block);
 
         ALL_ORES.add(oreKind);
         ALL_ORES_BY_NAME.put(oreKind.seedName, oreKind);

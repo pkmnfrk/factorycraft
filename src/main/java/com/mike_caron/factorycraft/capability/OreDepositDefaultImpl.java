@@ -6,6 +6,7 @@ import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.util.Tuple2i;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.factorycraft.world.OreKind;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 
 import javax.annotation.Nonnull;
@@ -80,12 +81,18 @@ public class OreDepositDefaultImpl
     }
 
     @Override
-    public void generateIfNeeded(int chunkX, int chunkZ, Map<String, NoiseGeneratorSimplex> noise)
+    public void generateIfNeeded(int chunkX, int chunkZ, Map<String, NoiseGeneratorSimplex> noise, BlockPos spawn)
     {
+        int cx = chunkX * 16;
+        int cz = chunkZ * 16;
+
         for(int z = 0; z < 4; z++)
         {
+            int mz = cz + z * 4;
             for(int x = 0; x < 4; x++)
             {
+                int mx = cx + x * 4;
+
                 OreKind winnerKind = null;
                 double winnerValue = 0.0;
 
@@ -95,9 +102,12 @@ public class OreDepositDefaultImpl
 
                     for(int sz = 0; sz < 4; sz ++)
                     {
+                        int pz = mz + sz;
                         for(int sx = 0; sx < 4; sx ++)
                         {
-                            double sample = ore.getSample(noise.get(ore.seedName), (int)(chunkX * 16 + x * 4 + sx * GLOBAL_MULTIPLIER), (int)(chunkZ * 16 + z * 4 + sz * GLOBAL_MULTIPLIER));
+                            int px = mx + sx;
+
+                            double sample = ore.getSample(noise.get(ore.seedName), px, pz, spawn);
 
                             clumpedValue += sample;
                         }

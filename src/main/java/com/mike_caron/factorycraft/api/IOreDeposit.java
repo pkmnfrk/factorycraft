@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.util.Tuple2i;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.factorycraft.world.OreKind;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 
 import javax.annotation.Nonnull;
@@ -20,6 +21,6 @@ public interface IOreDeposit
     void putDeposit(int sx, int sz, @Nonnull OreDeposit deposit);
     @Nullable
     OreKind mineOne(int sx, int sz);
-    public void generateIfNeeded(int chunkX, int chunkZ, Map<String, NoiseGeneratorSimplex> noise);
+    public void generateIfNeeded(int chunkX, int chunkZ, Map<String, NoiseGeneratorSimplex> noise, BlockPos spawn);
     void setGenerated();
 }

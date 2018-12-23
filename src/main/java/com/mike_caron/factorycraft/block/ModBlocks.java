@@ -60,7 +60,7 @@ public class ModBlocks
         registry.register(new BlockBoulder(Material.IRON, "boulder_copper", OreKind.COPPER));
         registry.register(new BlockBoulder(Material.IRON, "boulder_coal", OreKind.COAL));
         registry.register(new BlockBoulder(Material.IRON, "boulder_stone", OreKind.STONE));
-        registry.register(new BlockBoulder(Material.IRON, "boulder_uranium", OreKind.URANIUM).setLightLevel(2/15f));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_uranium", OreKind.URANIUM).setLightLevel(0.125f));
 
         registry.register(new BlockDrill("drill_burner", 0));
         registry.register(new BlockGrabber("grabber_burner", 0));

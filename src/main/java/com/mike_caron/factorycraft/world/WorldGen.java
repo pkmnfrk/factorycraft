@@ -38,15 +38,15 @@ public class WorldGen
 
     private void generateOverworld(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider)
     {
-        HashMap<String, NoiseGeneratorSimplex> noise = getNoise(world);
-
         Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
 
         IOreDeposit oreDeposit = chunk.getCapability(OreDepositCapabilityProvider.OREDEPOSIT, null);
 
         Preconditions.checkNotNull(oreDeposit);
 
-        oreDeposit.generateIfNeeded(chunkX, chunkZ, noise);
+        GlobalWorldData worldData = getNoise(world);
+
+        oreDeposit.generateIfNeeded(chunkX, chunkZ, worldData.noise, worldData.spawnPoint);
 
         for(Map.Entry<Tuple2i, OreDeposit> deposit : oreDeposit.getAllDeposits().entrySet())
         {
@@ -94,7 +94,7 @@ public class WorldGen
         return 64;
     }
 
-    private HashMap<String, NoiseGeneratorSimplex> getNoise(World world)
+    private GlobalWorldData getNoise(World world)
     {
         HashMap<String, NoiseGeneratorSimplex> seeds;
         lock.lock();
@@ -121,9 +121,14 @@ public class WorldGen
             worldData.markDirty();
         }
 
+        if(worldData.spawnPoint == null)
+        {
+            worldData.spawnPoint = world.getSpawnPoint();
+        }
+
         seeds = worldData.noise;
 
         lock.unlock();
-        return seeds;
+        return worldData;
     }
 }
