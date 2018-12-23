@@ -9,12 +9,15 @@ import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -109,6 +112,17 @@ public class BlockGrabber
         if(type == 0)
         {
             info.horizontal().text("Fuel").text(Integer.toString(te.getFuelTicks()));
+        }
+    }
+
+    @Override
+    protected void getExtraDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state)
+    {
+        TileEntityGrabber te = (TileEntityGrabber)world.getTileEntity(pos);
+
+        if(te != null)
+        {
+            te.addItemsToDrop(drops);
         }
     }
 }

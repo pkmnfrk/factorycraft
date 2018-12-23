@@ -418,6 +418,17 @@ public class TileEntityDrill
         return limitedItems;
     }
 
+    public void addItemsToDrop(NonNullList<ItemStack> items)
+    {
+        for(int i = 0; i < inventory.getSlots(); i++)
+        {
+            if(!inventory.getStackInSlot(i).isEmpty())
+            {
+                items.add(inventory.getStackInSlot(i));
+            }
+        }
+    }
+
     class CustomItemStackHandler
         extends ItemStackHandler
     {

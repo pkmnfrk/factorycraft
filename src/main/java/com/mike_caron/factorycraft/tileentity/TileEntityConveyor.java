@@ -14,6 +14,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
@@ -31,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
 public class TileEntityConveyor
@@ -63,6 +65,15 @@ public class TileEntityConveyor
     {
         this();
         this.type = type;
+    }
+
+    public void addItemsToDrop(NonNullList<ItemStack> items)
+    {
+        for(int i = 0; i < numTracks(); i++)
+        {
+            items.addAll(tracks.get(0).items.stream().map(it -> it.second).collect(Collectors.toList()));
+        }
+
     }
 
     @SubscribeEvent

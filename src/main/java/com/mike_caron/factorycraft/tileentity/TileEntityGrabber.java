@@ -43,7 +43,7 @@ public class TileEntityGrabber
     private int fuelTicks = 200;
 
     private NonNullList<ItemStack> limitedItems;
-    private ItemStackHandler itemStackHandler;
+    private ItemStackHandler inventory;
 
     public TileEntityGrabber()
     {
@@ -53,7 +53,7 @@ public class TileEntityGrabber
     {
         this();
         this.type = type;
-        itemStackHandler = new CustomItemStackHandler();
+        inventory = new CustomItemStackHandler();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class TileEntityGrabber
     {
         if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
         {
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(itemStackHandler);
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
         }
         return super.getCapability(capability, facing);
     }
@@ -94,12 +94,12 @@ public class TileEntityGrabber
             held = new ItemStack(compound.getCompoundTag("held"));
         }
 
-        if(itemStackHandler == null)
+        if(inventory == null)
         {
-            itemStackHandler = new CustomItemStackHandler();
+            inventory = new CustomItemStackHandler();
         }
         if(compound.hasKey("inv"))
-            itemStackHandler.deserializeNBT(compound.getCompoundTag("inv"));
+            inventory.deserializeNBT(compound.getCompoundTag("inv"));
 
     }
 
@@ -117,7 +117,7 @@ public class TileEntityGrabber
             ret.setTag("held", held.serializeNBT());
         }
         ret.setInteger("state", state.ordinal());
-        ret.setTag("inv", itemStackHandler.serializeNBT());
+        ret.setTag("inv", inventory.serializeNBT());
         if(type == 0)
             ret.setInteger("fuelTicks", fuelTicks);
 
@@ -168,15 +168,15 @@ public class TileEntityGrabber
 
                     if(type == 0 && !held.isEmpty() && TileEntityFurnace.isItemFuel(held) && (progress > maxProgress / 2 && progress < maxProgress / 2 + 2))
                     {
-                        ItemStack fuel = itemStackHandler.getStackInSlot(0);
+                        ItemStack fuel = inventory.getStackInSlot(0);
                         ItemStack newFuel;
                         if(fuel.getCount() < 5)
                         {
-                            newFuel = itemStackHandler.insertItem(0, held, true);
+                            newFuel = inventory.insertItem(0, held, true);
 
                             if(newFuel != held)
                             {
-                                held = itemStackHandler.insertItem(0, held, false);
+                                held = inventory.insertItem(0, held, false);
                                 state = State.GRABBING;
                                 progress = maxProgress - progress;
                             }
@@ -386,7 +386,7 @@ public class TileEntityGrabber
 
         if(fuelTicks > 0) return;
 
-        ItemStack fuel = itemStackHandler.getStackInSlot(0);
+        ItemStack fuel = inventory.getStackInSlot(0);
         if(fuel.isEmpty()) return;
 
         fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
@@ -395,7 +395,7 @@ public class TileEntityGrabber
         fuel.shrink(1);
         if (fuel.isEmpty()) {
             ItemStack item1 = item.getContainerItem(fuel);
-            itemStackHandler.setStackInSlot(0, item1);
+            inventory.setStackInSlot(0, item1);
         }
     }
 
@@ -559,6 +559,22 @@ public class TileEntityGrabber
     public int getFuelTicks()
     {
         return fuelTicks;
+    }
+
+    public void addItemsToDrop(NonNullList<ItemStack> items)
+    {
+        for(int i = 0; i < this.inventory.getSlots(); i++)
+        {
+            if(!inventory.getStackInSlot(i).isEmpty())
+            {
+                items.add(inventory.getStackInSlot(i));
+            }
+        }
+
+        if(!held.isEmpty())
+        {
+            items.add(held);
+        }
     }
 
     public enum State
