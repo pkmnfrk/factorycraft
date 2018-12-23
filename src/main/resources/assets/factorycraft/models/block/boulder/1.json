@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/block",
 	"textures": {
-		"ore": "factorycraft:block/iron_ore",
-		"particle": "factorycraft:block/iron_ore"
+		"ore": "factorycraft:block/boulder/iron",
+		"particle": "#ore"
 	},
 	"elements": [
 		{

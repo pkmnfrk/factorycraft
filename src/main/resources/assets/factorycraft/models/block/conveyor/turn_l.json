@@ -2,7 +2,7 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/block",
 	"textures": {
-		"0": "factorycraft:block/conveyor_turn_yellow",
+		"0": "factorycraft:block/conveyor/yellow_turn",
 		"particle": "#0"
 	},
 	"elements": [

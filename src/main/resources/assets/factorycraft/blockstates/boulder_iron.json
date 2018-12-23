@@ -2,8 +2,10 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "ore": "factorycraft:block/copper_ore"
-    }
+      "ore": "factorycraft:block/boulder/iron"
+    },
+    "transform": "forge:default-block",
+    "gui3d": true
   },
   "variants": {
     "size": {

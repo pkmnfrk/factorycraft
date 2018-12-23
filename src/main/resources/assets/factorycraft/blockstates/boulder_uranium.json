@@ -2,7 +2,7 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "ore": "factorycraft:block/iron_ore"
+      "ore": "factorycraft:block/boulder/uranium"
     },
     "transform": "forge:default-block",
     "gui3d": true

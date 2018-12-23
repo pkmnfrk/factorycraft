@@ -1,37 +1,37 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "factorycraft:conveyor",
+    "model": "factorycraft:conveyor/straight",
     "textures": {
-      "0": "factorycraft:block/conveyor_turn_blue"
+      "0": "factorycraft:block/conveyor/blue_turn"
     }
   },
   "variants": {
     "normal": [{
       "textures": {
-        "0": "factorycraft:block/conveyor_blue"
+        "0": "factorycraft:block/conveyor/blue"
       }
     }],
     "inventory": [{
       "textures": {
-        "0": "factorycraft:block/conveyor_blue"
+        "0": "factorycraft:block/conveyor/blue"
       }
     }],
 
-    "facing=south,turn=s": [{ "y":   0, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_blue" } }],
-    "facing=west,turn=s":  [{ "y":  90, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_blue" } }],
-    "facing=north,turn=s": [{ "y": 180, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_blue" } }],
-    "facing=east,turn=s":  [{ "y": 270, "model": "factorycraft:conveyor", "textures": { "0": "factorycraft:block/conveyor_blue" } }],
+    "facing=south,turn=s": [{ "y":   0, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=west,turn=s":  [{ "y":  90, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=north,turn=s": [{ "y": 180, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=east,turn=s":  [{ "y": 270, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
 
-    "facing=south,turn=r": [{ "y":  90, "model": "factorycraft:conveyor_turn_l" }],
-    "facing=west,turn=r":  [{ "y": 180, "model": "factorycraft:conveyor_turn_l" }],
-    "facing=north,turn=r": [{ "y": 270, "model": "factorycraft:conveyor_turn_l" }],
-    "facing=east,turn=r":  [{ "y":   0, "model": "factorycraft:conveyor_turn_l" }],
+    "facing=south,turn=r": [{ "y":  90, "model": "factorycraft:conveyor/turn_l" }],
+    "facing=west,turn=r":  [{ "y": 180, "model": "factorycraft:conveyor/turn_l" }],
+    "facing=north,turn=r": [{ "y": 270, "model": "factorycraft:conveyor/turn_l" }],
+    "facing=east,turn=r":  [{ "y":   0, "model": "factorycraft:conveyor/turn_l" }],
 
-    "facing=south,turn=l": [{ "y": 270, "model": "factorycraft:conveyor_turn_r" }],
-    "facing=west,turn=l":  [{ "y":   0, "model": "factorycraft:conveyor_turn_r" }],
-    "facing=north,turn=l": [{ "y":  90, "model": "factorycraft:conveyor_turn_r" }],
-    "facing=east,turn=l":  [{ "y": 180, "model": "factorycraft:conveyor_turn_r" }]
+    "facing=south,turn=l": [{ "y": 270, "model": "factorycraft:conveyor/turn_r" }],
+    "facing=west,turn=l":  [{ "y":   0, "model": "factorycraft:conveyor/turn_r" }],
+    "facing=north,turn=l": [{ "y":  90, "model": "factorycraft:conveyor/turn_r" }],
+    "facing=east,turn=l":  [{ "y": 180, "model": "factorycraft:conveyor/turn_r" }]
 
 
   }

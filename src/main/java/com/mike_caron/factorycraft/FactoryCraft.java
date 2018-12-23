@@ -7,6 +7,7 @@ import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityStorage;
 import com.mike_caron.factorycraft.capability.OreDepositDefaultImpl;
 import com.mike_caron.factorycraft.proxy.IModProxy;
+import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.factorycraft.world.WorldGen;
 import com.mike_caron.mikesmodslib.integrations.MainCompatHandler;
 import net.minecraft.creativetab.CreativeTabs;
@@ -69,6 +70,7 @@ public class FactoryCraft
 
         MainCompatHandler.registerAllPreInit();
 
+        OreKind.registerDefaultOreKinds();
         GameRegistry.registerWorldGenerator(new WorldGen(), 3);
     }
 

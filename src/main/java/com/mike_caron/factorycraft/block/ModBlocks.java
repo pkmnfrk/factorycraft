@@ -5,7 +5,6 @@ import com.mike_caron.factorycraft.tileentity.TileEntityConveyor;
 import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import com.mike_caron.factorycraft.world.OreKind;
-import com.mike_caron.mikesmodslib.block.BlockBase;
 import com.mike_caron.mikesmodslib.block.ModBlocksBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -26,12 +25,16 @@ public class ModBlocks
 {
     private ModBlocks(){}
 
-    @GameRegistry.ObjectHolder("iron_boulder")
-    public static final BlockBoulder iron_boulder = null;
-    @GameRegistry.ObjectHolder("copper_boulder")
-    public static final BlockBoulder copper_boulder = null;
-    @GameRegistry.ObjectHolder("coal_boulder")
-    public static final BlockBoulder coal_boulder = null;
+    @GameRegistry.ObjectHolder("boulder_iron")
+    public static final BlockBoulder boulder_iron = null;
+    @GameRegistry.ObjectHolder("boulder_copper")
+    public static final BlockBoulder boulder_copper = null;
+    @GameRegistry.ObjectHolder("boulder_coal")
+    public static final BlockBoulder boulder_coal = null;
+    @GameRegistry.ObjectHolder("boulder_stone")
+    public static final BlockBoulder boulder_stone = null;
+    @GameRegistry.ObjectHolder("boulder_uranium")
+    public static final BlockBoulder boulder_uranium = null;
 
     @GameRegistry.ObjectHolder("drill_burner")
     public static final BlockDrill drill_burner = null;
@@ -48,17 +51,16 @@ public class ModBlocks
     @GameRegistry.ObjectHolder("conveyor_fast")
     public static final BlockConveyor conveyor_fast = null;
 
-    @GameRegistry.ObjectHolder("test")
-    public static final BlockBase test = null;
-
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event)
     {
         IForgeRegistry<Block> registry = event.getRegistry();
 
-        registry.register(new BlockBoulder(Material.IRON, "iron_boulder", OreKind.IRON));
-        registry.register(new BlockBoulder(Material.IRON, "copper_boulder", OreKind.COPPER));
-        registry.register(new BlockBoulder(Material.IRON, "coal_boulder", OreKind.COAL));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_iron", OreKind.IRON));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_copper", OreKind.COPPER));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_coal", OreKind.COAL));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_stone", OreKind.STONE));
+        registry.register(new BlockBoulder(Material.IRON, "boulder_uranium", OreKind.URANIUM));
 
         registry.register(new BlockDrill("drill_burner", 0));
         registry.register(new BlockGrabber("grabber_burner", 0));
@@ -67,8 +69,6 @@ public class ModBlocks
         registry.register(new BlockConveyor("conveyor_slow", 0));
         registry.register(new BlockConveyor("conveyor_medium", 1));
         registry.register(new BlockConveyor("conveyor_fast", 2));
-
-        registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
         GameRegistry.registerTileEntity(TileEntityDrill.class, new ResourceLocation(FactoryCraft.modId, "drill"));
         GameRegistry.registerTileEntity(TileEntityGrabber.class, new ResourceLocation(FactoryCraft.modId, "grabber"));

@@ -2,7 +2,7 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "ore": "factorycraft:block/coal_ore"
+      "ore": "factorycraft:block/boulder/copper"
     }
   },
   "variants": {

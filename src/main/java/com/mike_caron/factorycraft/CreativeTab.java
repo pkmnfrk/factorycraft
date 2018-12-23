@@ -18,6 +18,6 @@ public class CreativeTab
     @Nonnull
     public ItemStack createIcon()
     {
-        return new ItemStack(ModBlocks.iron_boulder);
+        return new ItemStack(ModBlocks.boulder_iron);
     }
 }
