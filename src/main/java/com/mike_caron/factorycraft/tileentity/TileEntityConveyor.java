@@ -104,6 +104,15 @@ public class TileEntityConveyor
     @Override
     public void update()
     {
+        if(world.isRemote)
+        {
+            for(Track t : tracks)
+            {
+                t.update();
+            }
+            return;
+        }
+
         if(lastUpdate == lastUpdateTick)
             return;
 
@@ -612,9 +621,20 @@ public class TileEntityConveyor
             //3. If the next conveyor is not aligned, then we push them onto the
             //   appropriate spot on the closest track
 
-            TileEntityConveyor nextConveyor = findNextConveyor(pos);
             float speed = (type + 1) / 32f;
 
+            if(world.isRemote)
+            {
+                for(int i = 0; i < items.size(); i++)
+                {
+                    Tuple2<Float, ItemStack> item = items.get(i);
+                    items.set(i, new Tuple2<>(item.first + speed, item.second));
+                }
+
+                return;
+            }
+
+            TileEntityConveyor nextConveyor = findNextConveyor(pos);
 
             if(nextConveyor != null)
             {
@@ -663,7 +683,7 @@ public class TileEntityConveyor
                 if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<Float, ItemStack>(newPos, item.second));
-                    changed = true;
+                    //changed = true;
                 }
             }
 
@@ -708,7 +728,7 @@ public class TileEntityConveyor
                 else if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
-                    changed = true;
+                    //changed = true;
                 }
             }
 
@@ -758,7 +778,7 @@ public class TileEntityConveyor
                 else if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
-                    changed = true;
+                    //changed = true;
                 }
             }
 

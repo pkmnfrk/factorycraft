@@ -23,6 +23,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,6 +50,7 @@ public class BlockConveyor
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void initModel()
     {
         super.initModel();
@@ -164,18 +167,10 @@ public class BlockConveyor
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
     {
-        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        worldIn.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()), 2);
 
         state = worldIn.getBlockState(pos);
         ensureOrientedCorrectly(worldIn, pos, state);
-    }
-
-    @Override
-    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state)
-    {
-        super.onBlockAdded(worldIn, pos, state);
-        //state = worldIn.getBlockState(pos);
-        //ensureOrientedCorrectly(worldIn, pos, state);
     }
 
     @Override
@@ -248,7 +243,7 @@ public class BlockConveyor
         // if any of straight, left or right (in that order) are facing me, I want to re-orient myself to account for that
         // on the other hand, if both left and right are facing me, I want to ignore them both
 
-        if(!behind && (left || right)) {
+        if(!behind && (left ^ right)) {
             if(left)
             {
                 newState = newState.withProperty(TURN, EnumTurn.Left);
@@ -327,5 +322,12 @@ public class BlockConveyor
         {
             return this.toString().substring(0, 1).toLowerCase();
         }
+    }
+
+    public enum Type
+    {
+        Slow,
+        Medium,
+        Fast,
     }
 }

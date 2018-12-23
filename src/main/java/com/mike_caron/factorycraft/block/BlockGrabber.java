@@ -42,6 +42,7 @@ public class BlockGrabber
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void initModel()
     {
         super.initModel();

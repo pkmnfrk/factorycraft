@@ -43,6 +43,10 @@ public class ModBlocks
 
     @GameRegistry.ObjectHolder("conveyor_slow")
     public static final BlockConveyor conveyor_slow = null;
+    @GameRegistry.ObjectHolder("conveyor_medium")
+    public static final BlockConveyor conveyor_medium = null;
+    @GameRegistry.ObjectHolder("conveyor_fast")
+    public static final BlockConveyor conveyor_fast = null;
 
     @GameRegistry.ObjectHolder("test")
     public static final BlockBase test = null;
@@ -61,6 +65,8 @@ public class ModBlocks
         registry.register(new BlockGrabber("grabber", 1));
 
         registry.register(new BlockConveyor("conveyor_slow", 0));
+        registry.register(new BlockConveyor("conveyor_medium", 1));
+        registry.register(new BlockConveyor("conveyor_fast", 2));
 
         registry.register(new BlockBase(Material.IRON, "test").setCreativeTab(FactoryCraft.creativeTab));
 
