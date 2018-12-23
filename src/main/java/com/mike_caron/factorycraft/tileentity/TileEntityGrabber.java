@@ -192,7 +192,7 @@ public class TileEntityGrabber
                 {
                     //ok, look for an item source.
                     BlockPos inputSpace = getInputSpace();
-                    TileEntity inputTileEntity = world.getTileEntity(inputSpace);
+                    TileEntity inputTileEntity = getInputTileEntity();
                     IConveyorBelt inputConveyorBelt = null;
                     IItemHandler inputItemHandler = null;
 
@@ -202,7 +202,7 @@ public class TileEntityGrabber
                     EntityItem looseItem = null;
 
                     BlockPos outputSpace = getOutputSpace();
-                    TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    TileEntity outputTileEntity = getOutputTileEntity();
                     IConveyorBelt outputConveyorBelt = null;
                     IItemHandler outputItemHandler = null;
 
@@ -245,7 +245,7 @@ public class TileEntityGrabber
                         for (int i = 0; i < inputItemHandler.getSlots(); i++)
                         {
                             prospectiveItem = inputItemHandler.extractItem(i, 1, true);
-                            if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputTileEntity))
+                            if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
                             {
                                 slotNum = i;
                                 break;
@@ -260,7 +260,7 @@ public class TileEntityGrabber
 
                         for (EntityItem item : items)
                         {
-                            if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputTileEntity))
+                            if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
                             {
                                 prospectiveItem = item.getItem();
                                 looseItem = item;
@@ -299,7 +299,7 @@ public class TileEntityGrabber
                 break;
                 case WAITING_TO_INSERT:
                     BlockPos outputSpace = getOutputSpace();
-                    TileEntity outputTileEntity = world.getTileEntity(outputSpace);
+                    TileEntity outputTileEntity = getOutputTileEntity();
                     IConveyorBelt conveyorBelt = null;
                     IItemHandler outputItemHandler = null;
 
@@ -356,6 +356,29 @@ public class TileEntityGrabber
         //}
     }
 
+    private TileEntity getTileEntityNear(BlockPos pos)
+    {
+        TileEntity ret = world.getTileEntity(pos);
+        if(ret != null) return ret;
+
+        pos = pos.offset(EnumFacing.UP);
+
+        ret = world.getTileEntity(pos);
+        return ret;
+    }
+
+    private TileEntity getInputTileEntity()
+    {
+        BlockPos pos = getInputSpace();
+        return getTileEntityNear(pos);
+    }
+
+    private TileEntity getOutputTileEntity()
+    {
+        BlockPos pos = getOutputSpace();
+        return getTileEntityNear(pos);
+    }
+
     private void consumeFuelIfNeeded()
     {
         if(type != 0)
@@ -366,7 +389,7 @@ public class TileEntityGrabber
         ItemStack fuel = itemStackHandler.getStackInSlot(0);
         if(fuel.isEmpty()) return;
 
-        fuelTicks += TileEntityFurnace.getItemBurnTime(fuel) / 10;
+        fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
 
         Item item = fuel.getItem();
         fuel.shrink(1);
@@ -392,14 +415,25 @@ public class TileEntityGrabber
         return true;
     }
 
-    private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler, @Nullable TileEntity outputTileEntity)
+    private boolean isValidToOutput(@Nonnull ItemStack itemStack, BlockPos outputSpace, @Nullable IItemHandler outputHandler, @Nullable IConveyorBelt conveyorBelt, @Nullable TileEntity outputTileEntity)
     {
-        if(outputHandler != null)
+        if(conveyorBelt != null)
+        {
+            int track = conveyorBelt.trackClosestTo(getFacing());
+            float len = conveyorBelt.trackLength(track);
+            ItemStack ret = conveyorBelt.insert(track, len / 2, itemStack, true);
+
+            return ret != itemStack;
+        }
+        else if(outputHandler != null)
         {
             assert outputTileEntity != null;
 
             for(int i = 0; i < outputHandler.getSlots(); i++)
             {
+                if(!outputHandler.isItemValid(i, itemStack))
+                    continue;
+
                 ItemStack ret = outputHandler.insertItem(i, itemStack, true);
 
                 if(ret != itemStack)

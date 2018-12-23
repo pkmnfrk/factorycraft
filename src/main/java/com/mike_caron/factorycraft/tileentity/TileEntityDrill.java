@@ -2,8 +2,10 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.google.common.collect.ImmutableMap;
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.block.BlockDrill;
+import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
@@ -195,7 +197,7 @@ public class TileEntityDrill
             }
         }
 
-        IItemHandler outputInventory = getOuptutInventory();
+
 
         if(type != 0 || fuelTicks > 0)
         {
@@ -207,7 +209,12 @@ public class TileEntityDrill
 
                 if (deposit != null && deposit.getSize() > 0)
                 {
-                    if(outputInventory == null || canInsert(deposit.getOreKind().ore, outputInventory))
+                    IConveyorBelt outputConveyor = getOuptutConveyor();
+                    IItemHandler outputInventory = getOuptutInventory();
+
+                    ItemStack ore = deposit.getOreKind().ore;
+
+                    if((outputInventory == null && outputConveyor == null) || (outputConveyor != null && tryInsert(ore, outputConveyor, true) != ore) || (outputInventory != null && tryInsert(ore, outputInventory, true) != ore))
                     {
                         maxProgress = getTicksPerOre(deposit);
 
@@ -222,7 +229,11 @@ public class TileEntityDrill
                         {
                             if (deposit.mineOne())
                             {
-                                if(outputInventory != null)
+                                if(outputConveyor != null)
+                                {
+                                    tryInsert(ore, outputConveyor, false);
+                                }
+                                else if(outputInventory != null)
                                 {
                                     ItemUtils.insertItemIfPossible(deposit.getOreKind().ore, outputInventory);
                                 }
@@ -247,14 +258,25 @@ public class TileEntityDrill
         }
     }
 
-    private boolean canInsert(ItemStack stack, IItemHandler handler)
+    private ItemStack tryInsert(ItemStack stack, IConveyorBelt handler, boolean simulate)
+    {
+        int track = handler.trackClosestTo(getFacing());
+        float len = handler.trackLength(track);
+        return handler.insert(track, len / 2, stack, simulate);
+    }
+
+    private ItemStack tryInsert(ItemStack stack, IItemHandler handler, boolean simulate)
     {
         for(int i = 0; i < handler.getSlots(); i++)
         {
-            if(handler.insertItem(i, stack, true).isEmpty())
-                return true;
+            if(!handler.isItemValid(i, stack))
+                continue;
+
+            ItemStack res = handler.insertItem(i, stack, simulate);
+            if(res != stack)
+                return res;
         }
-        return false;
+        return stack;
     }
 
     private IItemHandler getOuptutInventory()
@@ -268,6 +290,40 @@ public class TileEntityDrill
         if(te != null)
         {
             return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+        }
+
+        blockPos = blockPos.offset(EnumFacing.DOWN);
+
+        te = world.getTileEntity(blockPos);
+
+        if(te != null)
+        {
+            return te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+        }
+
+        return null;
+    }
+
+    private IConveyorBelt getOuptutConveyor()
+    {
+        Vec3d output = getOutput();
+
+        BlockPos blockPos = new BlockPos(output);
+
+        TileEntity te = world.getTileEntity(blockPos);
+
+        if(te != null)
+        {
+            return te.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
+        }
+
+        blockPos = blockPos.offset(EnumFacing.DOWN);
+
+        te = world.getTileEntity(blockPos);
+
+        if(te != null)
+        {
+            return te.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
         }
 
         return null;

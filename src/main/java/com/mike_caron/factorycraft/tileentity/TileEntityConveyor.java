@@ -696,16 +696,14 @@ public class TileEntityConveyor
 
                 if(newPos > maxLength)
                 {
-                    newPos -= maxLength;
-                    items.remove(item);
-                    i -= 1;
-                    ItemStack res = nextTrack.insert(newPos, item.second, false);
-                    if(!res.isEmpty())
+                    ItemStack res = nextTrack.insert(newPos - maxLength, item.second, false);
+                    if(res.isEmpty())
                     {
-                        throw new Error("Just ate an item");
+                        newPos -= maxLength;
+                        items.remove(item);
+                        i -= 1;
+                        changed = true;
                     }
-                    changed = true;
-
                 }
                 else if(newPos != lastPos)
                 {
@@ -796,13 +794,7 @@ public class TileEntityConveyor
             if(otherFacing == myFacing.getOpposite())
                 return null;
 
-            if(myFacing == otherFacing.rotateY())
-                return other.tracks.get(1);
-
-            if(myFacing == otherFacing.rotateYCCW())
-                return other.tracks.get(0);
-
-            throw new Error("Should be impossible");
+            return other.tracks.get(other.trackClosestTo(myFacing));
         }
 
         private float getMyPosition(TileEntityConveyor other)
@@ -810,10 +802,10 @@ public class TileEntityConveyor
             EnumFacing otherFacing = other.getFacing();
             EnumFacing myFacing = getFacing();
 
-            if(myFacing == otherFacing.rotateY())
+            if(myFacing == otherFacing.rotateYCCW())
                 return trackNum * 0.5f + 0.25f;
 
-            if(myFacing == otherFacing.rotateYCCW())
+            if(myFacing == otherFacing.rotateY())
                 return 1f - (trackNum * 0.5f + 0.25f);
 
             throw new Error("Should be impossible");
