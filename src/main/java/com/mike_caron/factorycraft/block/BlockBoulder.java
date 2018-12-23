@@ -3,27 +3,21 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import java.util.List;
-
 public class BlockBoulder
     extends BlockBase
 {
-    public static final PropertyInteger SIZE = PropertyInteger.create("size", 0, 4);
-
     private OreKind oreKind;
+    private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(1.0 / 16, 0, 1.0 / 16, 15.0 / 16, 2.0 / 8.0, 15.0 / 16);
 
     public BlockBoulder(Material material, String name, OreKind oreKind)
     {
@@ -98,62 +92,7 @@ public class BlockBoulder
     @Override
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
     {
-        switch(state.getValue(SIZE))
-        {
-            case 0:
-                return new AxisAlignedBB(6.0 / 16, 0, 6.0 / 16, 9.0 / 16, 1.0 / 8.0, 9.0 / 16);
-            case 1:
-                return new AxisAlignedBB(1.0 / 16, 0, 6.0 / 16, 9.0 / 16, 1.0 / 8.0, 15.0 / 16);
-            case 2:
-            case 3:
-                return new AxisAlignedBB(1.0 / 16, 0, 3.0 / 16, 14.0 / 16, 1.0 / 8.0, 15.0 / 16);
-            default:
-                return new AxisAlignedBB(1.0 / 16, 0, 2.0 / 16, 14.0 / 16, 1.0 / 8.0, 15.0 / 16);
-        }
-
-    }
-
-    @Override
-    protected IBlockState addStateProperties(IBlockState blockState)
-    {
-        return super.addStateProperties(blockState)
-            .withProperty(SIZE, 4);
-    }
-
-    @Override
-    protected void addAdditionalPropeties(List<IProperty<?>> properties)
-    {
-        super.addAdditionalPropeties(properties);
-
-        properties.add(SIZE);
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state)
-    {
-        return state.getValue(SIZE);
-    }
-
-    @Override
-    public IBlockState getStateFromMeta(int meta)
-    {
-        return blockState.getBaseState().withProperty(SIZE, meta);
-    }
-
-    @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
-    {/*
-        if(worldIn.isRemote) return true;
-
-        int size = state.getValue(SIZE);
-
-        size += 1;
-
-        if(size > 4) size = 0;
-
-        worldIn.setBlockState(pos, state.withProperty(SIZE, size));
-*/
-        return false;
+        return BOUNDING_BOX;
     }
 
     @Override
@@ -163,18 +102,25 @@ public class BlockBoulder
     }
 
     @Override
-    public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player)
+    public void onPlayerDestroy(World worldIn, BlockPos pos, IBlockState state)
     {
-        super.onBlockHarvested(worldIn, pos, state, player);
-
-        //worldIn.setBlockState(pos, state, 2);
+        worldIn.setBlockState(pos, state, 2);
     }
 
     @Override
-    public void onPlayerDestroy(World worldIn, BlockPos pos, IBlockState state)
+    public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player)
     {
-        super.onPlayerDestroy(worldIn, pos, state);
+        if(worldIn.isRemote)
+            return;
 
-        worldIn.setBlockState(pos, state, 2);
+        if(!player.isCreative())
+        {
+            //TODO: deduct the ore from the world
+
+        }
+        else
+        {
+            worldIn.setBlockToAir(pos);
+        }
     }
 }

@@ -19,6 +19,8 @@ public class OreDepositDefaultImpl
     private final ConcurrentHashMap<Tuple2i, OreDeposit> deposits = new ConcurrentHashMap<>();
     private boolean generated = false;
 
+    private final float GLOBAL_MULTIPLIER = 4f; //increase to make ores rarer
+
     @Override
     @Nullable
     public OreDeposit getOreDeposit(int sx, int sz)
@@ -95,7 +97,7 @@ public class OreDepositDefaultImpl
                     {
                         for(int sx = 0; sx < 4; sx ++)
                         {
-                            double sample = ore.getSample(noise.get(ore.seedName), chunkX * 16 + x * 4 + sx, chunkZ * 16 + z * 4 + sz);
+                            double sample = ore.getSample(noise.get(ore.seedName), (int)(chunkX * 16 + x * 4 + sx * GLOBAL_MULTIPLIER), (int)(chunkZ * 16 + z * 4 + sz * GLOBAL_MULTIPLIER));
 
                             clumpedValue += sample;
                         }
