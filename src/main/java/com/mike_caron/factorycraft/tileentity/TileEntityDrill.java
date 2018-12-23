@@ -243,6 +243,12 @@ public class TileEntityDrill
 
                                     ItemUtils.dropItem(world, deposit.getOreKind().ore.copy(), output.x, output.y, output.z);
                                 }
+
+                                if(deposit.getSize() <= 0)
+                                {
+                                    //world.setBlockToAir(pos.down());
+                                    world.destroyBlock(pos.down(), false);
+                                }
                             }
 
                             progress = 0;

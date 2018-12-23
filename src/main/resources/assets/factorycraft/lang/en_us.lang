@@ -1,5 +1,16 @@
 factorycraft.creativetab.name=FactoryCraft
 
-tile.factorycraft:iron_boulder.name=Iron Boulder
-tile.factorycraft:copper_boulder.name=Copper Boulder
-tile.factorycraft:coal_boulder.name=Coal Boulder
+tile.factorycraft:boulder_iron.name=Iron Deposit
+tile.factorycraft:boulder_copper.name=Copper Deposit
+tile.factorycraft:boulder_coal.name=Coal Deposit
+tile.factorycraft:boulder_stone.name=Stone Deposit
+tile.factorycraft:boulder_uranium.name=Uranium Deposit
+
+tile.factorycraft:conveyor_slow.name=Conveyor Belt
+tile.factorycraft:conveyor_medium.name=Faster Conveyor Belt
+tile.factorycraft:conveyor_fast.name=Fastest Conveyor Belt
+
+tile.factorycraft:drill_burner.name=Burner Drill
+
+tile.factorycraft:grabber.name=Inserter
+tile.factorycraft:grabber_burner.name=Burner Inserter
