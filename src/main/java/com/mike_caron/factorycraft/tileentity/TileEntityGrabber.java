@@ -312,7 +312,7 @@ public class TileEntityGrabber
                     if(conveyorBelt != null)
                     {
                         int oppositeTrack = conveyorBelt.trackClosestTo(getFacing().getOpposite());
-                        held = conveyorBelt.insert(oppositeTrack, conveyorBelt.trackLength(oppositeTrack) / 2f, held, false);
+                        held = conveyorBelt.insert(oppositeTrack, conveyorBelt.trackLength(oppositeTrack) * 0.4f, held, false);
                     }
                     else if (outputItemHandler != null)
                     {
@@ -419,11 +419,14 @@ public class TileEntityGrabber
     {
         if(conveyorBelt != null)
         {
+            return true;
+            /*
             int track = conveyorBelt.trackClosestTo(getFacing());
             float len = conveyorBelt.trackLength(track);
             ItemStack ret = conveyorBelt.insert(track, len / 2, itemStack, true);
 
             return ret != itemStack;
+            */
         }
         else if(outputHandler != null)
         {
