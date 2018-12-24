@@ -1,10 +1,12 @@
 package com.mike_caron.factorycraft.tileentity;
 
+import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.block.BlockConveyor;
 import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
+import com.mike_caron.mikesmodslib.util.ItemUtils;
 import com.sun.javafx.geom.Vec3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
@@ -346,6 +348,7 @@ public class TileEntityConveyor
     public void notifyChange()
     {
         cachedTurn = null;
+        cachedFacing = null;
     }
 
     @Override
@@ -648,28 +651,54 @@ public class TileEntityConveyor
 */
             TileEntityConveyor nextConveyor = findNextConveyor(pos);
 
-            if(nextConveyor != null)
+            try
             {
-                if(isAligned(nextConveyor))
+
+
+                if (nextConveyor != null)
                 {
-                    updateAligned(speed, nextConveyor.tracks.get(trackNum));
-                }
-                else
-                {
-                    Track nextTrack = getNearestTrack(nextConveyor);
-                    if(nextTrack != null)
+                    if (isAligned(nextConveyor))
                     {
-                        updateMisaligned(speed, nextTrack, getMyPosition(nextConveyor));
+                        updateAligned(speed, nextConveyor.tracks.get(trackNum));
                     }
                     else
                     {
-                        updateNone(speed);
+                        Track nextTrack = getNearestTrack(nextConveyor);
+                        if (nextTrack != null)
+                        {
+                            updateMisaligned(speed, nextTrack, getMyPosition(nextConveyor));
+                        }
+                        else
+                        {
+                            updateNone(speed);
+                        }
                     }
                 }
+                else
+                {
+                    updateNone(speed);
+                }
             }
-            else
+            catch(Exception ex)
             {
-                updateNone(speed);
+                if(!world.isRemote)
+                {
+                    FactoryCraft.logger.error("Error updating track on server side!", ex);
+                }
+
+            }
+
+            if(!world.isRemote)
+            {
+                for(int i = 0; i < items.size(); i++)
+                {
+                    if(items.get(i).first < 0)
+                    {
+                        ItemUtils.dropItem(world, items.get(i).second, pos.getX(), pos.getY(), pos.getZ());
+                        items.remove(i);
+                        i -= 1;
+                    }
+                }
             }
 
         }
@@ -828,7 +857,7 @@ public class TileEntityConveyor
             return other.tracks.get(other.trackClosestTo(myFacing));
         }
 
-        private float getMyPosition(TileEntityConveyor other)
+        private float getMyPosition(TileEntityConveyor other) throws Exception
         {
             EnumFacing otherFacing = other.getFacing();
             EnumFacing myFacing = getFacing();
@@ -839,7 +868,7 @@ public class TileEntityConveyor
             if(myFacing == otherFacing.rotateY())
                 return 1f - (trackNum * 0.5f + 0.25f);
 
-            throw new Error("Should be impossible");
+            throw new Exception("Should be impossible");
         }
     }
 
