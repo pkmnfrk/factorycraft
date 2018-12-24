@@ -7,6 +7,7 @@ import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.block.BlockDrill;
 import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
+import com.mike_caron.factorycraft.energy.EnergyConsumer;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.block.TileEntityBase;
@@ -45,16 +46,18 @@ public class TileEntityDrill
     implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
     private int type = -1;
-    private int progress = 0;
+    private float progress = 0;
     private int maxProgress = 0;
     private int fuelTicks = 0;
 
     private IAnimationStateMachine asm;
-    private final TimeValues.VariableValue anim_cycle = new TimeValues.VariableValue(1f);
+    private final TimeValues.VariableValue animProgress = new TimeValues.VariableValue(0f);
 
-    ItemStackHandler inventory;
+    private ItemStackHandler inventory;
 
-    NonNullList<ItemStack> limitedItems;
+    private NonNullList<ItemStack> limitedItems;
+
+    private MyEnergyConsumer energyConsumer;
 
     public TileEntityDrill()
     {
@@ -73,6 +76,8 @@ public class TileEntityDrill
         this();
         this.type = type;
         this.inventory = new CustomItemStackHandler();
+        if(this.type != 0)
+            this.energyConsumer = new MyEnergyConsumer();
     }
 
     public void loadAsm()
@@ -83,7 +88,7 @@ public class TileEntityDrill
             currentState = asm.currentState();
         }
 
-        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/drill_burner.json"), ImmutableMap.of("cycle_length", anim_cycle));
+        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/drill_burner.json"), ImmutableMap.of("progress", animProgress));
 
         if(!asm.currentState() .equals(currentState))
             asm.transition(currentState);
@@ -120,7 +125,7 @@ public class TileEntityDrill
         super.readFromNBT(compound);
 
         type = compound.getInteger("type");
-        progress = compound.getInteger("progress");
+        progress = compound.getFloat("progress");
         if(type == 0)
         {
             fuelTicks = compound.getInteger("fuelTicks");
@@ -129,6 +134,11 @@ public class TileEntityDrill
         {
             inventory = new CustomItemStackHandler();
         }
+        if(type != 0 && energyConsumer == null)
+        {
+            energyConsumer = new MyEnergyConsumer();
+        }
+
         inventory.deserializeNBT(compound.getCompoundTag("inv"));
 
         int newMaxProgress = compound.getInteger("maxProgress");
@@ -138,10 +148,8 @@ public class TileEntityDrill
             {
                 if(newMaxProgress > 0)
                 {
-                    if(asm.currentState() != "active")
+                    if(!asm.currentState().equals("active"))
                         asm.transition("active");
-
-                    anim_cycle.setValue(newMaxProgress / 20f);
                 }
                 else
                 {
@@ -150,6 +158,10 @@ public class TileEntityDrill
             }
         }
         maxProgress = newMaxProgress;
+        if(maxProgress > 0)
+        {
+            animProgress.setValue(progress / maxProgress);
+        }
     }
 
     @Override
@@ -159,7 +171,7 @@ public class TileEntityDrill
         NBTTagCompound ret = super.writeToNBT(compound);
 
         ret.setInteger("type", type);
-        ret.setInteger("progress", progress);
+        ret.setFloat("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
         if(type == 0)
         {
@@ -174,12 +186,13 @@ public class TileEntityDrill
     public void update()
     {
         if(world.isRemote) {
+            if(maxProgress > 0)
+            {
+                progress += 1f;
+                animProgress.setValue(progress / maxProgress);
+            }
             return;
         }
-
-        int startMaxProgress = maxProgress;
-
-        maxProgress = 0;
 
         if(type == 0 && fuelTicks <= 0)
         {
@@ -197,9 +210,25 @@ public class TileEntityDrill
             }
         }
 
+        if(type == 0)
+        {
+            update(0);
+        }
+        else
+        {
+            energyConsumer.requestEnergy(getEnergyUsage());
+        }
+
+    }
+
+    public void update(int energy)
+    {
+        int startMaxProgress = maxProgress;
+
+        maxProgress = 0;
 
 
-        if(type != 0 || fuelTicks > 0)
+        if(energy > 0 || fuelTicks > 0)
         {
 
             IOreDeposit oreDeposit = getIOreDeposit();
@@ -218,7 +247,8 @@ public class TileEntityDrill
                     {
                         maxProgress = getTicksPerOre(deposit);
 
-                        progress += 1;
+                        progress += getProgress(energy);
+
                         if (type == 0)
                         {
                             fuelTicks -= 1;
@@ -262,6 +292,12 @@ public class TileEntityDrill
         {
             markAndNotify();
         }
+    }
+
+    private float getProgress(int energy)
+    {
+        if(type == 0) return 1;
+        return ((float)energy) / getEnergyUsage();
     }
 
     private ItemStack tryInsert(ItemStack stack, IConveyorBelt handler, boolean simulate)
@@ -429,6 +465,12 @@ public class TileEntityDrill
         }
     }
 
+    public int getEnergyUsage()
+    {
+        if(type == 0) return 0;
+        return 15000;
+    }
+
     class CustomItemStackHandler
         extends ItemStackHandler
     {
@@ -456,6 +498,16 @@ public class TileEntityDrill
             }
 
             return false;
+        }
+    }
+
+    private class MyEnergyConsumer
+        extends EnergyConsumer
+    {
+        @Override
+        public void onEnergyProvided(int amount)
+        {
+
         }
     }
 }

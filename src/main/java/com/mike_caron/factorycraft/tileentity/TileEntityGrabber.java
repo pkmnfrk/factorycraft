@@ -228,16 +228,20 @@ public class TileEntityGrabber
 
                         prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
 
-                        if(prospectiveItem.isEmpty())
+                        if(prospectiveItem.isEmpty() || !isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
                         {
                             track = 1-track;
                             beltPos = inputConveyorBelt.trackLength(track) / 2;
                             prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
                         }
 
-                        if(!prospectiveItem.isEmpty())
+                        if(!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
                         {
                             slotNum = track;
+                        }
+                        else
+                        {
+                            prospectiveItem = ItemStack.EMPTY;
                         }
                     }
                     else if (inputItemHandler != null)

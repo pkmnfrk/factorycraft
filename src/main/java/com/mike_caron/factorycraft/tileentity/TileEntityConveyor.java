@@ -634,6 +634,7 @@ public class TileEntityConveyor
 
             float speed = (type + 1) / 32f;
 
+            /*
             if(world.isRemote)
             {
                 for(int i = 0; i < items.size(); i++)
@@ -644,7 +645,7 @@ public class TileEntityConveyor
 
                 return;
             }
-
+*/
             TileEntityConveyor nextConveyor = findNextConveyor(pos);
 
             if(nextConveyor != null)
