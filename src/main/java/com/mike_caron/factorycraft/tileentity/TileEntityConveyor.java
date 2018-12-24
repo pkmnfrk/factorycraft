@@ -777,15 +777,14 @@ public class TileEntityConveyor
 
                 if(newPos > maxLength)
                 {
-                    items.remove(item);
-                    i -= 1;
                     ItemStack res = nextTrack.insert(myPos, item.second, false);
-                    if(!res.isEmpty())
+                    if(res.isEmpty())
                     {
-                        throw new Error("Just ate an item");
+                        lastPos = maxLength;
+                        items.remove(item);
+                        i -= 1;
+                        changed = true;
                     }
-                    changed = true;
-
                 }
                 else if(newPos != lastPos)
                 {

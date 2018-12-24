@@ -208,16 +208,16 @@ public class TileEntityGrabber
 
                     if (inputTileEntity != null)
                     {
-                        inputConveyorBelt = inputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
+                        inputConveyorBelt = inputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
                         if(inputConveyorBelt == null)
-                            inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
+                            inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
                     }
 
                     if (outputTileEntity != null)
                     {
-                        outputConveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing());
+                        outputConveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
                         if(outputConveyorBelt == null)
-                            outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
+                            outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
                     }
 
 
@@ -310,7 +310,7 @@ public class TileEntityGrabber
                     if (outputTileEntity != null)
                     {
                         conveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, null);
-                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
+                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
                     }
 
                     if(conveyorBelt != null)

@@ -3,8 +3,8 @@
 
   },
   "clips": {
-    "active": [ "apply", "factorycraft:block/drill1_shaft@active", "#progress" ],
-    "inactive": "factorycraft:block/drill1_shaft@inactive"
+    "active": [ "apply", "factorycraft:block/drill2_shaft@active", "#progress" ],
+    "inactive": "factorycraft:block/drill2_shaft@inactive"
   },
   "states": [
     "inactive", "active"

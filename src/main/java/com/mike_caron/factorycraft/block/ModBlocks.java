@@ -38,6 +38,8 @@ public class ModBlocks
 
     @GameRegistry.ObjectHolder("drill_burner")
     public static final BlockDrill drill_burner = null;
+    @GameRegistry.ObjectHolder("drill")
+    public static final BlockDrill drill = null;
 
     @GameRegistry.ObjectHolder("grabber_burner")
     public static final BlockGrabber grabber_burner = null;
@@ -63,6 +65,8 @@ public class ModBlocks
         registry.register(new BlockBoulder(Material.IRON, "boulder_uranium", OreKind.URANIUM).setLightLevel(0.125f));
 
         registry.register(new BlockDrill("drill_burner", 0));
+        registry.register(new BlockDrill("drill", 1));
+
         registry.register(new BlockGrabber("grabber_burner", 0));
         registry.register(new BlockGrabber("grabber", 1));
 

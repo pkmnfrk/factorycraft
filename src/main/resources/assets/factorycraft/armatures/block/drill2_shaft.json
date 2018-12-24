@@ -1,0 +1,56 @@
+{
+  "joints": {
+    "drill": {
+      "0": [1],
+      "1": [1],
+      "2": [1],
+      "3": [1],
+      "4": [1],
+      "5": [1],
+      "6": [1],
+      "7": [1],
+      "8": [1]
+    }
+  },
+  "clips": {
+    "active": {
+      "loop": false,
+      "joint_clips": {
+        "drill": [
+          {
+            "variable": "axis_y",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [-1]
+          },
+          {
+            "variable": "origin_x",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0.5]
+          },
+          {
+            "variable": "origin_z",
+            "type": "uniform",
+            "interpolation": "nearest",
+            "samples": [0.5]
+          },
+          {
+            "variable": "angle",
+            "type": "uniform",
+            "interpolation": "linear",
+            "samples": [0, 180, 360]
+          }
+        ]
+      },
+      "events": {
+
+      }
+    },
+    "inactive": {
+      "loop": false,
+      "joint_clips": {},
+      "events": {}
+    }
+  }
+}

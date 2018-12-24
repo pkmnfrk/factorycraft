@@ -32,8 +32,6 @@ import net.minecraftforge.common.animation.TimeValues;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.model.animation.CapabilityAnimation;
 import net.minecraftforge.common.model.animation.IAnimationStateMachine;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -50,7 +48,7 @@ public class TileEntityDrill
     private int maxProgress = 0;
     private int fuelTicks = 0;
 
-    private IAnimationStateMachine asm;
+    private IAnimationStateMachine asm = null;
     private final TimeValues.VariableValue animProgress = new TimeValues.VariableValue(0f);
 
     private ItemStackHandler inventory;
@@ -61,14 +59,7 @@ public class TileEntityDrill
 
     public TileEntityDrill()
     {
-        if(FMLCommonHandler.instance().getSide() == Side.CLIENT)
-        {
-            loadAsm();
-        }
-        else
-        {
-            asm = null;
-        }
+
     }
 
     public TileEntityDrill(int type)
@@ -87,8 +78,13 @@ public class TileEntityDrill
         {
             currentState = asm.currentState();
         }
+        String animation = "asms/block/drill_burner.json";
 
-        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, "asms/block/drill_burner.json"), ImmutableMap.of("progress", animProgress));
+        if(type == 1)
+        {
+            animation = "asms/block/drill.json";
+        }
+        asm = ModelLoaderRegistry.loadASM(new ResourceLocation(FactoryCraft.modId, animation), ImmutableMap.of("progress", animProgress));
 
         if(!asm.currentState() .equals(currentState))
             asm.transition(currentState);
@@ -153,6 +149,7 @@ public class TileEntityDrill
                 }
                 else
                 {
+                    if(!asm.currentState().equals("inactive"))
                     asm.transition("inactive");
                 }
             }
@@ -185,6 +182,11 @@ public class TileEntityDrill
     @Override
     public void update()
     {
+        if(world.isRemote)
+        {
+            loadAsm();
+        }
+
         if(world.isRemote) {
             if(maxProgress > 0)
             {
@@ -507,7 +509,7 @@ public class TileEntityDrill
         @Override
         public void onEnergyProvided(int amount)
         {
-
+            update(amount);
         }
     }
 }
