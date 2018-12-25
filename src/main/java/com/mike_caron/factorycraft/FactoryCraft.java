@@ -2,16 +2,16 @@ package com.mike_caron.factorycraft;
 
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.IOreDeposit;
-import com.mike_caron.factorycraft.capability.CapabilityConveyorStorage;
-import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
-import com.mike_caron.factorycraft.capability.OreDepositCapabilityStorage;
-import com.mike_caron.factorycraft.capability.OreDepositDefaultImpl;
+import com.mike_caron.factorycraft.capability.*;
+import com.mike_caron.factorycraft.energy.EnergyManager;
+import com.mike_caron.factorycraft.energy.IEnergyManager;
 import com.mike_caron.factorycraft.proxy.IModProxy;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.factorycraft.world.WorldGen;
 import com.mike_caron.mikesmodslib.integrations.MainCompatHandler;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -82,7 +82,7 @@ public class FactoryCraft
 
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
-
+        CapabilityManager.INSTANCE.register(IEnergyManager.class, new CapabilityEnergyManagerStorage(), EnergyManager::new);
         MainCompatHandler.registerAllInit();
     }
 
@@ -94,11 +94,20 @@ public class FactoryCraft
 
 
     @SubscribeEvent
-    public static void attachCapabilities(AttachCapabilitiesEvent<Chunk> event)
+    public static void attachDepositCapabilities(AttachCapabilitiesEvent<Chunk> event)
     {
         if(event.getObject().getWorld().isRemote) return;
 
         event.addCapability(new ResourceLocation(FactoryCraft.modId, "oredeposit"), new OreDepositCapabilityProvider());
+
+    }
+
+    @SubscribeEvent
+    public static void attachWorldCapabilities(AttachCapabilitiesEvent<World> event)
+    {
+        if(event.getObject().isRemote) return;
+
+        event.addCapability(new ResourceLocation(FactoryCraft.modId, "energyManager"), new CapabilityEnergyManager());
 
     }
 
