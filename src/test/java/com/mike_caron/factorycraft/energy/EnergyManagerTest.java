@@ -1,5 +1,6 @@
 package com.mike_caron.factorycraft.energy;
 
+import com.mike_caron.factorycraft.TestEnvironment;
 import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import com.mike_caron.factorycraft.util.ITileEntityFinder;
@@ -16,10 +17,10 @@ import java.util.HashMap;
 
 public class EnergyManagerTest
 {
-    @org.junit.jupiter.api.BeforeEach
-    void preTest()
+    @org.junit.jupiter.api.BeforeAll
+    static void preTests()
     {
-
+        TestEnvironment.isTestEnvironment = true;
     }
 
     @Test

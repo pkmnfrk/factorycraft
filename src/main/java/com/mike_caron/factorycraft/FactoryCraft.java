@@ -51,6 +51,8 @@ public class FactoryCraft
 
     public static final CreativeTabs creativeTab = new CreativeTab();
 
+    public static boolean nonLiveEnvironment = false;
+
     @SuppressWarnings("unused")
     @Mod.Instance(modId)
     public static FactoryCraft instance;
@@ -64,11 +66,14 @@ public class FactoryCraft
     //public static SimpleNetworkWrapper networkWrapper;
 
     static {
-        FluidRegistry.enableUniversalBucket();
+        if(!TestEnvironment.isTestEnvironment)
+        {
+            FluidRegistry.enableUniversalBucket();
+        }
     }
 
     @Mod.EventHandler
-    public  void preInit(FMLPreInitializationEvent event)
+    public void preInit(FMLPreInitializationEvent event)
     {
         proxy.preInit(event);
 

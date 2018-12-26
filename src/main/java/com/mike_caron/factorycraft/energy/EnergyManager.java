@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.energy;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.TestEnvironment;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyManager;
@@ -36,8 +37,11 @@ public class EnergyManager
     {
         this.world = world;
 
-        registeredInstances.add(this);
-        MinecraftForge.EVENT_BUS.register(this);
+        if(!TestEnvironment.isTestEnvironment)
+        {
+            registeredInstances.add(this);
+            MinecraftForge.EVENT_BUS.register(this);
+        }
     }
 
     @Override
