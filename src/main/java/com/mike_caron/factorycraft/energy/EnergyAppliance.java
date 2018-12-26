@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nonnull;
 import java.util.function.IntConsumer;
 
-public abstract class EnergyAppliance
+public class EnergyAppliance
 {
     private BlockPos connector;
     private TileEntity host;

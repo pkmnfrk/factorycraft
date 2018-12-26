@@ -52,7 +52,7 @@ public class Tuple3i
             NBTTagCompound ret = new NBTTagCompound();
 
             ret.setInteger("x", obj.x);
-            ret.setInteger("y", obj.z);
+            ret.setInteger("y", obj.y);
             ret.setInteger("z", obj.z);
 
             return ret;

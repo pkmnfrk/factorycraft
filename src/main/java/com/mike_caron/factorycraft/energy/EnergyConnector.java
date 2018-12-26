@@ -83,7 +83,7 @@ public class EnergyConnector
     @Override
     public void provideEnergy(int amount, IntConsumer callback)
     {
-        getEnergyManager().requestEnergy(networkId, amount, callback);
+        getEnergyManager().provideEnergy(networkId, amount, callback);
     }
 
     @Override
