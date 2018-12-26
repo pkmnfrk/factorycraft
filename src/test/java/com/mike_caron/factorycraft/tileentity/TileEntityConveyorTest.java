@@ -1,13 +1,9 @@
 package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.block.BlockConveyor;
-import com.mike_caron.factorycraft.util.Tuple2;
-import net.minecraft.init.Bootstrap;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec2f;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -50,28 +46,6 @@ class TileEntityConveyorTest
         Assertions.assertEquals(0, newPos.y);
     }
 
-    @Test
-    void itemsAreInExpectedPositions()
-    {
-        Bootstrap.register();
-        TileEntityConveyor conveyor = new TileEntityConveyor();
-        conveyor.cachedTurn = BlockConveyor.EnumTurn.Straight;
-        conveyor.update();
-
-        for(int i = 0; i < conveyor.numTracks(); i++)
-        {
-            float p = TileEntityConveyor.ITEM_RADIUS;
-
-            for(int j = 0; j < conveyor.tracks.get(i).getItemCount(); j++)
-            {
-                Tuple2<Float, ItemStack> item = conveyor.tracks.get(i).getItems().get(j);
-
-                Assertions.assertEquals(p, item.first.floatValue());
-
-                p += TileEntityConveyor.ITEM_RADIUS * 2;
-            }
-        }
-    }
 
     private TileEntityConveyor.ItemPosition getItemPosition()
     {

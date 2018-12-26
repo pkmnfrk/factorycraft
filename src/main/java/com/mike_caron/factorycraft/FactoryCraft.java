@@ -3,7 +3,7 @@ package com.mike_caron.factorycraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.capability.*;
-import com.mike_caron.factorycraft.energy.EnergyManager;
+import com.mike_caron.factorycraft.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.energy.IEnergyManager;
 import com.mike_caron.factorycraft.proxy.IModProxy;
 import com.mike_caron.factorycraft.world.OreKind;
@@ -82,7 +82,8 @@ public class FactoryCraft
 
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
-        CapabilityManager.INSTANCE.register(IEnergyManager.class, new CapabilityEnergyManagerStorage(), EnergyManager::new);
+        CapabilityManager.INSTANCE.register(IEnergyManager.class, new CapabilityEnergyManagerStorage(), () -> null);
+        CapabilityManager.INSTANCE.register(IEnergyConnector.class, new NullStorage<>(), () -> null);
         MainCompatHandler.registerAllInit();
     }
 
@@ -107,7 +108,7 @@ public class FactoryCraft
     {
         if(event.getObject().isRemote) return;
 
-        event.addCapability(new ResourceLocation(FactoryCraft.modId, "energyManager"), new CapabilityEnergyManager());
+        event.addCapability(new ResourceLocation(FactoryCraft.modId, "energyManager"), new CapabilityEnergyManager(event.getObject()));
 
     }
 

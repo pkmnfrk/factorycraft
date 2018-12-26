@@ -5,14 +5,17 @@ import net.minecraft.world.World;
 
 import java.util.UUID;
 
-public class EnergyNode
+public class EnergyConnector
+    implements IEnergyConnector
 {
     private UUID networkId;
     private TileEntity host;
+    private final int radius;
 
-    public EnergyNode(TileEntity host)
+    public EnergyConnector(TileEntity host, int radius)
     {
         this.host = host;
+        this.radius = radius;
     }
 
     public UUID getNetworkId()
@@ -29,5 +32,17 @@ public class EnergyNode
     {
         //seek out other energy nodes, and join their network
 
+    }
+
+    @Override
+    public int getRadius()
+    {
+        return radius;
+    }
+
+    @Override
+    public void notifyNetworkChange(UUID newNetwork)
+    {
+        this.networkId = newNetwork;
     }
 }

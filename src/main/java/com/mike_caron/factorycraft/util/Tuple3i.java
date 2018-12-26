@@ -5,14 +5,16 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.Objects;
 
-public class Tuple2i
+public class Tuple3i
 {
     public final int x;
+    public final int y;
     public final int z;
 
-    public Tuple2i(int x, int z)
+    public Tuple3i(int x, int y, int z)
     {
         this.x = x;
+        this.y = y;
         this.z = z;
     }
 
@@ -23,36 +25,44 @@ public class Tuple2i
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        Tuple2i tuple2i = (Tuple2i) o;
-        return x == tuple2i.x &&
-            z == tuple2i.z;
+        Tuple3i tuple3i = (Tuple3i) o;
+        return x == tuple3i.x &&
+               y == tuple3i.y &&
+            z == tuple3i.z;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(x, z);
+        return Objects.hash(x, y, z);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "(" + x + ", " + y + ", " + z + ")";
     }
 
     public static class Serializer
-        implements  INBTSerializer<Tuple2i>
+        implements  INBTSerializer<Tuple3i>
     {
         @Override
-        public NBTBase serializeNBT(Tuple2i obj)
+        public NBTBase serializeNBT(Tuple3i obj)
         {
             NBTTagCompound ret = new NBTTagCompound();
 
             ret.setInteger("x", obj.x);
+            ret.setInteger("y", obj.z);
             ret.setInteger("z", obj.z);
 
             return ret;
         }
 
         @Override
-        public Tuple2i deserializeNBT(NBTBase nbtBase)
+        public Tuple3i deserializeNBT(NBTBase nbtBase)
         {
             NBTTagCompound nbt = (NBTTagCompound)nbtBase;
-            return new Tuple2i(nbt.getInteger("x"), nbt.getInteger("z"));
+            return new Tuple3i(nbt.getInteger("x"), nbt.getInteger("y"), nbt.getInteger("z"));
         }
     }
 }

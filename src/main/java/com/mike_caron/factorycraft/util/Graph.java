@@ -1,6 +1,5 @@
 package com.mike_caron.factorycraft.util;
 
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
@@ -8,28 +7,33 @@ import net.minecraftforge.common.util.INBTSerializable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.BiPredicate;
 
-public class Graph<V, N extends NBTBase>
+public class Graph<K, V>
     implements INBTSerializable<NBTTagCompound>
 {
-    private final HashMap<V, Set<V>> nodes = new HashMap<>();
-    private final INBTSerializer<V, N> serializer;
+    private final HashMap<K, Set<K>> nodes = new HashMap<>();
+    private final HashMap<K, V> values = new HashMap<>();
+    private final INBTSerializer<K> keySerializer;
+    private final INBTSerializer<V> valueSerializer;
 
-    public Graph(@Nonnull INBTSerializer<V, N> serializer)
+    public Graph(@Nonnull INBTSerializer<K> keySerializer, @Nonnull INBTSerializer<V> valueSerializer)
     {
-        this.serializer = serializer;
+        this.keySerializer = keySerializer;
+        this.valueSerializer = valueSerializer;
     }
 
-    public void addEdge(V key, V other)
+    public void addEdge(@Nonnull K key, @Nonnull K other)
+            throws IllegalStateException
     {
         if(!nodes.containsKey(key))
         {
-            nodes.put(key, new HashSet<>());
+            throw new IllegalStateException("First node is not part of the graph");
         }
 
         if(!nodes.containsKey(other))
         {
-            nodes.put(other, new HashSet<>());
+            throw new IllegalStateException("Second node is not part of the graph");
         }
 
         nodes.get(key).add(other);
@@ -37,36 +41,42 @@ public class Graph<V, N extends NBTBase>
 
     }
 
-    public void removeEdge(V key, V other)
+    public void removeEdge(@Nonnull K key, @Nonnull K other)
+            throws IllegalStateException
     {
-        if(nodes.containsKey(key))
+        if (!nodes.containsKey(key))
         {
-            nodes.get(key).remove(other);
+            throw new IllegalStateException("First node is not part of the graph");
         }
 
-        if(nodes.containsKey(other))
+        if (!nodes.containsKey(other))
         {
-            nodes.get(other).remove(key);
+            throw new IllegalStateException("Second node is not part of the graph");
         }
+
+        nodes.get(key).remove(other);
+        nodes.get(other).remove(key);
     }
 
-    public void addNode(V key)
+    public void addNode(@Nonnull K key, @Nonnull V value)
     {
         if (!nodes.containsKey(key))
         {
             nodes.put(key, new HashSet<>());
         }
+        values.put(key, value);
     }
 
-    public void removeNode(V key)
+    public void removeNode(@Nonnull K key)
     {
         if(nodes.containsKey(key))
         {
-            for (V other : nodes.get(key))
+            for (K other : nodes.get(key))
             {
                 nodes.get(other).remove(key);
             }
             nodes.remove(key);
+            values.remove(key);
         }
     }
 
@@ -75,7 +85,8 @@ public class Graph<V, N extends NBTBase>
         return nodes.size();
     }
 
-    public Set<V> getEdges(V key)
+    @Nonnull
+    public Set<K> getEdges(@Nonnull K key)
     {
         if(nodes.containsKey(key))
             return nodes.get(key);
@@ -83,32 +94,33 @@ public class Graph<V, N extends NBTBase>
         return Collections.emptySet();
     }
 
-    public List<Set<V>> getDiscreteGraphs()
+    @Nonnull
+    public List<Set<K>> getDiscreteGraphs()
     {
-        List<Set<V>> ret = new ArrayList<>();
+        List<Set<K>> ret = new ArrayList<>();
         if(nodes.isEmpty())
             return ret;
 
-        Set<V> allNodes = new HashSet<>(nodes.keySet());
+        Set<K> allNodes = new HashSet<>(nodes.keySet());
 
         while(!allNodes.isEmpty())
         {
 
-            Set<V> currentNodes = new HashSet<>();
-            Stack<V> toVisit = new Stack<>();
+            Set<K> currentNodes = new HashSet<>();
+            Stack<K> toVisit = new Stack<>();
 
-            V first = allNodes.stream().findAny().orElse(null);
+            K first = allNodes.stream().findAny().orElse(null);
 
             toVisit.push(first);
 
             while(!toVisit.empty())
             {
-                V node = toVisit.pop();
+                K node = toVisit.pop();
 
                 allNodes.remove(node);
                 currentNodes.add(node);
 
-                for(V edge : nodes.get(node))
+                for(K edge : nodes.get(node))
                 {
                     if(!currentNodes.contains(edge))
                     {
@@ -125,6 +137,33 @@ public class Graph<V, N extends NBTBase>
 
     }
 
+    @Nonnull
+    public V getValue(@Nonnull K key)
+    {
+        if(!nodes.containsKey(key))
+        {
+            throw new IllegalStateException("Node is not part of the graph");
+        }
+
+        return values.get(key);
+    }
+
+    @Nonnull
+    public Set<K> nodesMatching(@Nonnull BiPredicate<K, V> predicate)
+    {
+        Set<K> ret = new HashSet<>();
+
+        for(Map.Entry<K,V> entry : values.entrySet())
+        {
+            if(predicate.test(entry.getKey(), entry.getValue()))
+            {
+                ret.add(entry.getKey());
+            }
+        }
+
+        return ret;
+    }
+
     @Override
     public NBTTagCompound serializeNBT()
     {
@@ -132,17 +171,18 @@ public class Graph<V, N extends NBTBase>
 
         NBTTagList nodes = new NBTTagList();
 
-        for(Map.Entry<V, Set<V>> node : this.nodes.entrySet())
+        for(Map.Entry<K, Set<K>> node : this.nodes.entrySet())
         {
             NBTTagCompound nodeObj = new NBTTagCompound();
 
-            nodeObj.setTag("key", serializer.serializeNBT(node.getKey()));
+            nodeObj.setTag("key", keySerializer.serializeNBT(node.getKey()));
+            nodeObj.setTag("value", valueSerializer.serializeNBT(values.get(node.getKey())));
 
             NBTTagList edges = new NBTTagList();
 
-            for(V e : node.getValue())
+            for(K e : node.getValue())
             {
-                edges.appendTag(serializer.serializeNBT(e));
+                edges.appendTag(keySerializer.serializeNBT(e));
             }
 
             nodeObj.setTag("edges", edges);
@@ -159,19 +199,24 @@ public class Graph<V, N extends NBTBase>
     public void deserializeNBT(NBTTagCompound nbtTagCompound)
     {
         this.nodes.clear();
+        this.values.clear();
+
         NBTTagList nodes = nbtTagCompound.getTagList("nodes", Constants.NBT.TAG_COMPOUND);
         for(int i = 0; i < nodes.tagCount(); i++)
         {
             NBTTagCompound nodeObj = nodes.getCompoundTagAt(i);
 
-            V key = serializer.deserializeNBT((N)nodeObj.getTag("key"));
+            K key = keySerializer.deserializeNBT(nodeObj.getTag("key"));
+            V value = valueSerializer.deserializeNBT(nodeObj.getTag("value"));
 
-            Set<V> edges = new HashSet<>();
-            NBTTagList edgeList = nodeObj.getTagList("edges", Constants.NBT.TAG_COMPOUND);
+            this.values.put(key, value);
+
+            Set<K> edges = new HashSet<>();
+            NBTTagList edgeList = (NBTTagList)nodeObj.getTag("edges");
 
             for(int j = 0; j < edgeList.tagCount(); j++)
             {
-                V edge = serializer.deserializeNBT((N)edgeList.get(j));
+                K edge = keySerializer.deserializeNBT(edgeList.get(j));
 
                 edges.add(edge);
             }

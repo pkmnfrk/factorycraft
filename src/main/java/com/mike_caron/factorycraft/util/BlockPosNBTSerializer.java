@@ -1,13 +1,14 @@
 package com.mike_caron.factorycraft.util;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
 public class BlockPosNBTSerializer
-    implements INBTSerializer<BlockPos, NBTTagCompound>
+    implements INBTSerializer<BlockPos>
 {
     @Override
-    public NBTTagCompound serializeNBT(BlockPos obj)
+    public NBTBase serializeNBT(BlockPos obj)
     {
         NBTTagCompound ret = new NBTTagCompound();
 
@@ -19,8 +20,9 @@ public class BlockPosNBTSerializer
     }
 
     @Override
-    public BlockPos deserializeNBT(NBTTagCompound nbt)
+    public BlockPos deserializeNBT(NBTBase nbtBase)
     {
+        NBTTagCompound nbt = (NBTTagCompound)nbtBase;
         int x = nbt.getInteger("X");
         int y = nbt.getInteger("Y");
         int z = nbt.getInteger("Z");
