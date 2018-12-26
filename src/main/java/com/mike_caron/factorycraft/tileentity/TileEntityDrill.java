@@ -10,7 +10,6 @@ import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
 import com.mike_caron.factorycraft.energy.EnergyConsumer;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
-import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -40,10 +39,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TileEntityDrill
-    extends TileEntityBase
+    extends TypedTileEntity
     implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
-    private int type = -1;
     private float progress = 0;
     private int maxProgress = 0;
     private int fuelTicks = 0;
@@ -59,16 +57,23 @@ public class TileEntityDrill
 
     public TileEntityDrill()
     {
+        super();
+    }
 
+    @Override
+    protected void onKnowingType()
+    {
+        super.onKnowingType();
+
+        this.inventory = new CustomItemStackHandler();
+
+        if(this.type != 0)
+            this.energyConsumer = new MyEnergyConsumer();
     }
 
     public TileEntityDrill(int type)
     {
-        this();
-        this.type = type;
-        this.inventory = new CustomItemStackHandler();
-        if(this.type != 0)
-            this.energyConsumer = new MyEnergyConsumer();
+        super(type);
     }
 
     public void loadAsm()
@@ -120,19 +125,10 @@ public class TileEntityDrill
     {
         super.readFromNBT(compound);
 
-        type = compound.getInteger("type");
         progress = compound.getFloat("progress");
         if(type == 0)
         {
             fuelTicks = compound.getInteger("fuelTicks");
-        }
-        if(inventory == null)
-        {
-            inventory = new CustomItemStackHandler();
-        }
-        if(type != 0 && energyConsumer == null)
-        {
-            energyConsumer = new MyEnergyConsumer();
         }
 
         inventory.deserializeNBT(compound.getCompoundTag("inv"));
@@ -167,7 +163,6 @@ public class TileEntityDrill
     {
         NBTTagCompound ret = super.writeToNBT(compound);
 
-        ret.setInteger("type", type);
         ret.setFloat("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
         if(type == 0)

@@ -151,7 +151,7 @@ public class EnergyManagerTest
     class DummyTileEntity
         extends TileEntity
     {
-        IEnergyConnector connector = new EnergyConnector(this, 5);
+        IEnergyConnector connector = new EnergyConnector(this, 5, 3);
 
         @Override
         public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)

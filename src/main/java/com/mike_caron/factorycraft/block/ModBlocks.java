@@ -3,6 +3,7 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.tileentity.TileEntityConveyor;
 import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
+import com.mike_caron.factorycraft.tileentity.TileEntityElectricalPole;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.ModBlocksBase;
@@ -53,6 +54,14 @@ public class ModBlocks
     @GameRegistry.ObjectHolder("conveyor_fast")
     public static final BlockConveyor conveyor_fast = null;
 
+    @GameRegistry.ObjectHolder("small_electrical_pole")
+    public static final BlockElectricalPole small_electrical_pole = null;
+    //@GameRegistry.ObjectHolder("medium_electrical_pole")
+    //public static final BlockElectricalPole medium_electrical_pole = null;
+    //@GameRegistry.ObjectHolder("large_electrical_pole")
+    //public static final BlockElectricalPole large_electrical_pole = null;
+
+
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event)
     {
@@ -74,9 +83,12 @@ public class ModBlocks
         registry.register(new BlockConveyor("conveyor_medium", 1));
         registry.register(new BlockConveyor("conveyor_fast", 2));
 
+        registry.register(new BlockElectricalPole("small_electrical_pole", 0));
+
         GameRegistry.registerTileEntity(TileEntityDrill.class, new ResourceLocation(FactoryCraft.modId, "drill"));
         GameRegistry.registerTileEntity(TileEntityGrabber.class, new ResourceLocation(FactoryCraft.modId, "grabber"));
         GameRegistry.registerTileEntity(TileEntityConveyor.class, new ResourceLocation(FactoryCraft.modId, "conveyor"));
+        GameRegistry.registerTileEntity(TileEntityElectricalPole.class, new ResourceLocation(FactoryCraft.modId, "electrical_pole"));
 
         ModBlocksBase.registerBlocks(ModBlocksBase.class);
 

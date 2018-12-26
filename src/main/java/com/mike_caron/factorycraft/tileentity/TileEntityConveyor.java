@@ -5,7 +5,6 @@ import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.block.BlockConveyor;
 import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
-import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import com.sun.javafx.geom.Vec3f;
 import net.minecraft.block.state.IBlockState;
@@ -38,11 +37,9 @@ import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
 public class TileEntityConveyor
-    extends TileEntityBase
+    extends TypedTileEntity
     implements IConveyorBelt, ITickable
 {
-    public int type;
-
     public final List<Track> tracks = new ArrayList<>();
     public static final float ITEM_RADIUS = 4.5f / 32f;
 
@@ -57,7 +54,9 @@ public class TileEntityConveyor
 
     public TileEntityConveyor()
     {
-        for(int i =0; i < numTracks(); i++)
+        super();
+
+        for(int i = 0; i < numTracks(); i++)
         {
             tracks.add(new Track(i));
         }
@@ -65,8 +64,20 @@ public class TileEntityConveyor
 
     public TileEntityConveyor(int type)
     {
-        this();
-        this.type = type;
+        super(type);
+
+        for(int i = 0; i < numTracks(); i++)
+        {
+            tracks.add(new Track(i));
+        }
+    }
+
+    @Override
+    protected void onKnowingType()
+    {
+        super.onKnowingType();
+
+
     }
 
     public void addItemsToDrop(NonNullList<ItemStack> items)
@@ -240,7 +251,6 @@ public class TileEntityConveyor
     {
         super.readFromNBT(compound);
 
-        type = compound.getInteger("type");
         NBTTagList trackList = compound.getTagList("tracks", Constants.NBT.TAG_COMPOUND);
 
         for(int i = 0; i < trackList.tagCount(); i++)
@@ -256,7 +266,6 @@ public class TileEntityConveyor
     {
         NBTTagCompound ret = super.writeToNBT(compound);
 
-        ret.setInteger("type", type);
         NBTTagList trackList = new NBTTagList();
 
         for(int i = 0; i < tracks.size(); i++)

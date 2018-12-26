@@ -4,7 +4,8 @@ import java.util.UUID;
 
 public interface IEnergyConnector
 {
-    int getRadius();
+    int getConnectRadius();
+    int getPowerRadius();
     void notifyNetworkChange(UUID newNetwork);
     UUID getNetworkId();
 }

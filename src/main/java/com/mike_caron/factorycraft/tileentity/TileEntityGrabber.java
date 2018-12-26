@@ -4,7 +4,6 @@ import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.capability.CapabilityConveyor;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
-import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Items;
@@ -29,12 +28,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class TileEntityGrabber
-    extends TileEntityBase
+    extends TypedTileEntity
     implements ITickable, ILimitedInputItems
 {
     private static final AxisAlignedBB renderingBoundingBox = new AxisAlignedBB(-1, 0, -1, 2, 2, 2);
-
-    private int type = -1;
 
     private ItemStack held = ItemStack.EMPTY;
     private State state = State.GRABBING;
@@ -47,12 +44,19 @@ public class TileEntityGrabber
 
     public TileEntityGrabber()
     {
+        super();
     }
 
     public TileEntityGrabber(int type)
     {
-        this();
-        this.type = type;
+        super(type);
+    }
+
+    @Override
+    protected void onKnowingType()
+    {
+        super.onKnowingType();
+
         inventory = new CustomItemStackHandler();
     }
 
@@ -81,7 +85,6 @@ public class TileEntityGrabber
     {
         super.readFromNBT(compound);
 
-        type = compound.getInteger("type");
         progress = compound.getInteger("progress");
         maxProgress = compound.getInteger("maxProgress");
         state = State.values()[compound.getInteger("state")];
@@ -94,10 +97,6 @@ public class TileEntityGrabber
             held = new ItemStack(compound.getCompoundTag("held"));
         }
 
-        if(inventory == null)
-        {
-            inventory = new CustomItemStackHandler();
-        }
         if(compound.hasKey("inv"))
             inventory.deserializeNBT(compound.getCompoundTag("inv"));
 
@@ -109,7 +108,6 @@ public class TileEntityGrabber
     {
         NBTTagCompound ret = super.writeToNBT(compound);
 
-        ret.setInteger("type", type);
         ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
         if(!held.isEmpty())

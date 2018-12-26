@@ -1,5 +1,6 @@
 package com.mike_caron.factorycraft.energy;
 
+import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.capability.CapabilityEnergyConnector;
 import com.mike_caron.factorycraft.util.Graph;
 import com.mike_caron.factorycraft.util.INBTSerializer;
@@ -36,7 +37,7 @@ public class EnergyManager
         if(connector == null)
             throw new IllegalStateException("Trying to register missing connector at " + tup);
 
-        int radiusSq = connector.getRadius() * connector.getRadius();
+        int radiusSq = connector.getConnectRadius() * connector.getConnectRadius();
 
         Set<Tuple3i> nearbyNodes = graph.nodesMatching((node, value) -> getDistanceSq(tup, node) < Math.min(radiusSq, value.radius) );
 
@@ -140,6 +141,7 @@ public class EnergyManager
     {
         List<Set<Tuple3i>> sets = graph.getDiscreteGraphs();
         Set<UUID> burned = new HashSet<>();
+        Set<Tuple3i> error = new HashSet<>();
 
         for(Set<Tuple3i> network : sets)
         {
@@ -164,12 +166,26 @@ public class EnergyManager
                 if(!node.network.equals(networkId))
                 {
                     node.network = networkId;
-                    notifyNetworkChange(tup, networkId);
+
+                    try
+                    {
+                        notifyNetworkChange(tup, networkId);
+                    }
+                    catch (IllegalStateException ex)
+                    {
+                        FactoryCraft.logger.error(ex);
+                        error.add(tup);
+                    }
                 }
 
             }
 
             burned.add(networkId);
+        }
+
+        for(Tuple3i tup : error)
+        {
+            graph.removeNode(tup);
         }
     }
 
@@ -177,10 +193,11 @@ public class EnergyManager
     {
         IEnergyConnector connector = getConnectorAt(node);
 
-        if(connector == null)
+        if (connector == null)
             throw new IllegalStateException("Missing connector for registered energy node at " + node.toString());
 
         connector.notifyNetworkChange(newNetwork);
+
 
     }
 
