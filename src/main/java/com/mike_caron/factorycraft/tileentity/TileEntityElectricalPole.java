@@ -1,8 +1,8 @@
 package com.mike_caron.factorycraft.tileentity;
 
-import com.mike_caron.factorycraft.capability.CapabilityEnergyConnector;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityEnergyConnector;
 import com.mike_caron.factorycraft.energy.EnergyConnector;
-import com.mike_caron.factorycraft.energy.IEnergyConnector;
+import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;

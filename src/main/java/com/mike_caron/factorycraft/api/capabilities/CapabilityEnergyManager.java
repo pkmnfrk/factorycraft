@@ -1,7 +1,7 @@
-package com.mike_caron.factorycraft.capability;
+package com.mike_caron.factorycraft.api.capabilities;
 
 import com.mike_caron.factorycraft.energy.EnergyManager;
-import com.mike_caron.factorycraft.energy.IEnergyManager;
+import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import com.mike_caron.factorycraft.util.WorldTileEntityFinder;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.util.EnumFacing;

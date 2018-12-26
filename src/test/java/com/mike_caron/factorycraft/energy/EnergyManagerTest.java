@@ -1,5 +1,7 @@
 package com.mike_caron.factorycraft.energy;
 
+import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
+import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import com.mike_caron.factorycraft.util.ITileEntityFinder;
 import com.mike_caron.factorycraft.util.Tuple3i;
 import net.minecraft.tileentity.TileEntity;

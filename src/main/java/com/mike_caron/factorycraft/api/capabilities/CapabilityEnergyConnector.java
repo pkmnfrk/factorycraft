@@ -1,6 +1,6 @@
-package com.mike_caron.factorycraft.capability;
+package com.mike_caron.factorycraft.api.capabilities;
 
-import com.mike_caron.factorycraft.api.IConveyorBelt;
+import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -9,11 +9,11 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class CapabilityConveyor
+public class CapabilityEnergyConnector
     implements ICapabilityProvider
 {
-    @CapabilityInject(IConveyorBelt.class)
-    public static Capability<IConveyorBelt> CONVEYOR;
+    @CapabilityInject(IEnergyConnector.class)
+    public static Capability<IEnergyConnector> ENERGY_CONNECTOR;
 
     @Override
     public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing enumFacing)

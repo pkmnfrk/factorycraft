@@ -1,11 +1,14 @@
 package com.mike_caron.factorycraft.energy;
 
-import com.mike_caron.factorycraft.capability.CapabilityEnergyManager;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityEnergyManager;
+import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
+import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.UUID;
+import java.util.function.IntConsumer;
 
 public class EnergyConnector
     implements IEnergyConnector, INBTSerializable<NBTTagCompound>
@@ -69,6 +72,18 @@ public class EnergyConnector
     public void notifyNetworkChange(UUID newNetwork)
     {
         this.networkId = newNetwork;
+    }
+
+    @Override
+    public void requestEnergy(int amount, IntConsumer callback)
+    {
+        getEnergyManager().requestEnergy(networkId, amount, callback);
+    }
+
+    @Override
+    public void provideEnergy(int amount, IntConsumer callback)
+    {
+        getEnergyManager().requestEnergy(networkId, amount, callback);
     }
 
     @Override

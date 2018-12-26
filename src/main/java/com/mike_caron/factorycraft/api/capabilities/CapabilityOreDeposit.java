@@ -1,4 +1,4 @@
-package com.mike_caron.factorycraft.capability;
+package com.mike_caron.factorycraft.api.capabilities;
 
 import com.mike_caron.factorycraft.api.IOreDeposit;
 import net.minecraft.nbt.NBTBase;
@@ -10,7 +10,7 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class OreDepositCapabilityProvider
+public class CapabilityOreDeposit
     implements ICapabilitySerializable<NBTBase>
 {
     @CapabilityInject(IOreDeposit.class)

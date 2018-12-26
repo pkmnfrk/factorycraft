@@ -1,6 +1,6 @@
 package com.mike_caron.factorycraft.capability;
 
-import com.mike_caron.factorycraft.energy.IEnergyManager;
+import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;

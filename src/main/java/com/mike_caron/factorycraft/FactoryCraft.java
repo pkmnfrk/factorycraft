@@ -2,9 +2,12 @@ package com.mike_caron.factorycraft;
 
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.IOreDeposit;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityEnergyManager;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.capability.*;
-import com.mike_caron.factorycraft.energy.IEnergyConnector;
-import com.mike_caron.factorycraft.energy.IEnergyManager;
+import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
+import com.mike_caron.factorycraft.api.energy.IEnergyManager;
+import com.mike_caron.factorycraft.energy.EnergyManager;
 import com.mike_caron.factorycraft.proxy.IModProxy;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.factorycraft.world.WorldGen;
@@ -21,6 +24,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
@@ -92,6 +96,10 @@ public class FactoryCraft
         proxy.postInit(event);
     }
 
+    public void serverStopped(FMLServerStoppedEvent event)
+    {
+        EnergyManager.cleanUp();
+    }
 
 
     @SubscribeEvent
@@ -99,7 +107,7 @@ public class FactoryCraft
     {
         if(event.getObject().getWorld().isRemote) return;
 
-        event.addCapability(new ResourceLocation(FactoryCraft.modId, "oredeposit"), new OreDepositCapabilityProvider());
+        event.addCapability(new ResourceLocation(FactoryCraft.modId, "oredeposit"), new CapabilityOreDeposit());
 
     }
 

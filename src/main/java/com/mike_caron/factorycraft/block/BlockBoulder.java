@@ -1,7 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.api.IOreDeposit;
-import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.BlockBase;
@@ -164,7 +164,7 @@ public class BlockBoulder
 
     private OreDeposit getOreDeposit(World world, BlockPos pos)
     {
-        IOreDeposit deposit = world.getChunk(pos).getCapability(OreDepositCapabilityProvider.OREDEPOSIT, null);
+        IOreDeposit deposit = world.getChunk(pos).getCapability(CapabilityOreDeposit.OREDEPOSIT, null);
 
         if(deposit != null)
         {

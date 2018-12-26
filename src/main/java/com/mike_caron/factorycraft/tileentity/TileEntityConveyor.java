@@ -3,7 +3,7 @@ package com.mike_caron.factorycraft.tileentity;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.block.BlockConveyor;
-import com.mike_caron.factorycraft.capability.CapabilityConveyor;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import com.sun.javafx.geom.Vec3f;

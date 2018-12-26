@@ -2,7 +2,7 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
-import com.mike_caron.factorycraft.capability.CapabilityConveyor;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;

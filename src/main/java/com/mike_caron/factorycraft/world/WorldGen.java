@@ -3,7 +3,7 @@ package com.mike_caron.factorycraft.world;
 import com.google.common.base.Preconditions;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IOreDeposit;
-import com.mike_caron.factorycraft.capability.OreDepositCapabilityProvider;
+import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.util.Tuple2i;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -40,7 +40,7 @@ public class WorldGen
     {
         Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
 
-        IOreDeposit oreDeposit = chunk.getCapability(OreDepositCapabilityProvider.OREDEPOSIT, null);
+        IOreDeposit oreDeposit = chunk.getCapability(CapabilityOreDeposit.OREDEPOSIT, null);
 
         Preconditions.checkNotNull(oreDeposit);
 
