@@ -1,0 +1,31 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "factorycraft:block/pole/small",
+		"particle": "factorycraft:block/pole/small"
+	},
+	"elements": [
+		{
+			"from": [6, -3, 6],
+			"to": [10, 2, 10],
+			"faces": {
+				"north": {"uv": [0, 6, 8, 16], "texture": "#0"},
+				"east": {"uv": [0, 6, 8, 16], "texture": "#0"},
+				"south": {"uv": [0, 6, 8, 16], "texture": "#0"},
+				"west": {"uv": [0, 6, 8, 16], "texture": "#0"},
+				"up": {"uv": [0, 0, 6, 6], "texture": "#0"},
+				"down": {"uv": [0, 0, 6, 6], "texture": "#0"}
+			}
+		},
+		{
+			"from": [7, 0, 7],
+			"to": [9, 16, 9],
+			"faces": {
+				"north": {"uv": [12, 0, 16, 16], "texture": "#0"},
+				"east": {"uv": [12, 0, 16, 16], "texture": "#0"},
+				"south": {"uv": [12, 0, 16, 16], "texture": "#0"},
+				"west": {"uv": [12, 0, 16, 16], "texture": "#0"}
+			}
+		}
+	]
+}

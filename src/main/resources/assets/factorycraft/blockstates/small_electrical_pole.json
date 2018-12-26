@@ -1,0 +1,21 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+  },
+  "variants": {
+    "inventory": [{
+      "model": "factorycraft:pole/small_inv"
+    }],
+    "part": {
+      "0": {
+        "model": "factorycraft:pole/small_base"
+      },
+      "1": {
+        "model": "factorycraft:pole/small_mid"
+      },
+      "2": {
+        "model": "factorycraft:pole/small_top"
+      }
+    }
+  }
+}
