@@ -9,13 +9,13 @@ public class TileEntityCreativePower
     implements ITickable
 {
     private EnergyAppliance energyAppliance = new EnergyAppliance(this);
-    private static final int energyPerTick = 100000;
+    private static final int energyPerTick = 600;
 
     @Override
     public void update()
     {
         if(world.isRemote) return;
 
-        energyAppliance.provideEnergy(energyPerTick, (actual) -> {});
+        energyAppliance.provideEnergy(12000, (actual) -> {});
     }
 }

@@ -76,8 +76,8 @@ public class ModBlocks
         registry.register(new BlockDrill("drill_burner", 0));
         registry.register(new BlockDrill("drill", 1));
 
-        registry.register(new BlockGrabber("grabber_burner", 0));
-        registry.register(new BlockGrabber("grabber", 1));
+        registry.register(new BlockGrabber("grabber_burner", TileEntityGrabber.TYPE_BURNER));
+        registry.register(new BlockGrabber("grabber", TileEntityGrabber.TYPE_REGULAR));
 
         registry.register(new BlockConveyor("conveyor_slow", 0));
         registry.register(new BlockConveyor("conveyor_medium", 1));

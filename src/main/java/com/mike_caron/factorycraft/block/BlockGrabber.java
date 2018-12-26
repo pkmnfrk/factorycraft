@@ -27,6 +27,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
 
+import static com.mike_caron.factorycraft.tileentity.TileEntityGrabber.TYPE_BURNER;
+
 public class BlockGrabber
     extends AnimatedMachineBase
 {
@@ -76,7 +78,7 @@ public class BlockGrabber
     @SideOnly(Side.CLIENT)
     public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand)
     {
-        if(type != 0) return;
+        if(type != TYPE_BURNER) return;
 
         TileEntityGrabber te = (TileEntityGrabber)worldIn.getTileEntity(pos);
 
@@ -109,7 +111,7 @@ public class BlockGrabber
 
         info
             .text(te.getState().toString());
-        if(type == 0)
+        if(type == TYPE_BURNER)
         {
             info.horizontal().text("Fuel").text(Integer.toString(te.getFuelTicks()));
         }

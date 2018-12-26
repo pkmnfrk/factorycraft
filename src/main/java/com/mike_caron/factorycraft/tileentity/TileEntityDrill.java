@@ -42,8 +42,9 @@ public class TileEntityDrill
     extends TypedTileEntity
     implements ITickable, IAnimationEventHandler, ILimitedInputItems
 {
-    private float progress = 0;
+    private int progress = 0;
     private int maxProgress = 0;
+    private int lastMaxProgress = 0;
     private int fuelTicks = 0;
 
     private IAnimationStateMachine asm = null;
@@ -125,7 +126,10 @@ public class TileEntityDrill
     {
         super.readFromNBT(compound);
 
-        progress = compound.getFloat("progress");
+        progress = compound.getInteger("progress");
+        if(compound.hasKey("lastMaxProgress"))
+            lastMaxProgress = compound.getInteger("lastMaxProgress");
+
         if(type == 0)
         {
             fuelTicks = compound.getInteger("fuelTicks");
@@ -153,7 +157,7 @@ public class TileEntityDrill
         maxProgress = newMaxProgress;
         if(maxProgress > 0)
         {
-            animProgress.setValue(progress / maxProgress);
+            animProgress.setValue(((float)progress) / maxProgress);
         }
     }
 
@@ -163,8 +167,9 @@ public class TileEntityDrill
     {
         NBTTagCompound ret = super.writeToNBT(compound);
 
-        ret.setFloat("progress", progress);
+        ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
+        ret.setInteger("lastMaxProgress", lastMaxProgress);
         if(type == 0)
         {
             ret.setInteger("fuelTicks", fuelTicks);
@@ -186,7 +191,7 @@ public class TileEntityDrill
             if(maxProgress > 0)
             {
                 progress += 1f;
-                animProgress.setValue(progress / maxProgress);
+                animProgress.setValue(((float)progress) / maxProgress);
             }
             return;
         }
@@ -242,9 +247,16 @@ public class TileEntityDrill
 
                     if((outputInventory == null && outputConveyor == null) || (outputConveyor != null && tryInsert(ore, outputConveyor, true) != ore) || (outputInventory != null && tryInsert(ore, outputInventory, true) != ore))
                     {
-                        maxProgress = getTicksPerOre(deposit);
+                        maxProgress = getTicksPerOre(deposit) * getEnergyUsage() / energy;
 
-                        progress += getProgress(energy);
+                        if(lastMaxProgress != 0)
+                        {
+                            progress = progress * maxProgress / lastMaxProgress;
+                        }
+
+                        lastMaxProgress = maxProgress;
+
+                        progress += 1;
 
                         if (type == 0)
                         {

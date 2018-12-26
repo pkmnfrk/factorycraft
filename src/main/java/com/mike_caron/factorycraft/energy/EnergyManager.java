@@ -53,11 +53,18 @@ public class EnergyManager
 
         int radiusSq = connector.getConnectRadius();
 
+        FactoryCraft.logger.info("Hooking up connector with radius {}", radiusSq);
+
         Set<Tuple3i> nearbyNodes = graph
                 .nodesMatching((node, value) -> {
                     IEnergyConnector con = getConnectorAt(node);
                     if(con == null) return false;
-                    return getDistance(tup, node) < Math.min(radiusSq, con.getConnectRadius());
+                    double dist = getDistance(tup, node);
+                    int effectiveRadius = Math.min(radiusSq, con.getConnectRadius());
+
+                    FactoryCraft.logger.info("Can we connect to {} (distance={}) with effective radius of {}?", node, dist, effectiveRadius);
+
+                    return dist <= effectiveRadius;
                 });
 
         UUID newNetwork = null;

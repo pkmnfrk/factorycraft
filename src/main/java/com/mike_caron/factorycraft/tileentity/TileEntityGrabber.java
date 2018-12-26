@@ -3,6 +3,7 @@ package com.mike_caron.factorycraft.tileentity;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
+import com.mike_caron.factorycraft.energy.EnergyAppliance;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
@@ -33,10 +34,21 @@ public class TileEntityGrabber
 {
     private static final AxisAlignedBB renderingBoundingBox = new AxisAlignedBB(-1, 0, -1, 2, 2, 2);
 
+    public static final int TYPE_BURNER  = 0;
+    public static final int TYPE_REGULAR = 1;
+    public static final int TYPE_LONG    = 2;
+    public static final int TYPE_FAST    = 3;
+    public static final int TYPE_STACK   = 4;
+    public static final int TYPE_FILTER  = 5;
+    public static final int TYPE_STACK_FILTER = 6;
+
+
     private ItemStack held = ItemStack.EMPTY;
     private State state = State.GRABBING;
     private int progress = 0;
     private int maxProgress = 0;
+    private int lastMaxProgress = 0;
+
     private int fuelTicks = 200;
 
     private NonNullList<ItemStack> limitedItems;
@@ -51,6 +63,8 @@ public class TileEntityGrabber
     {
         super(type);
     }
+
+    private EnergyAppliance energyAppliance = new EnergyAppliance(this);
 
     @Override
     protected void onKnowingType()
@@ -87,6 +101,8 @@ public class TileEntityGrabber
 
         progress = compound.getInteger("progress");
         maxProgress = compound.getInteger("maxProgress");
+        if(compound.hasKey("lastMaxProgress"))
+            lastMaxProgress = compound.getInteger("lastMaxProgress");
         state = State.values()[compound.getInteger("state")];
         if(compound.hasKey("fuelTicks"))
             fuelTicks = compound.getInteger("fuelTicks");
@@ -110,13 +126,14 @@ public class TileEntityGrabber
 
         ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
+        ret.setInteger("lastMaxProgress", lastMaxProgress);
         if(!held.isEmpty())
         {
             ret.setTag("held", held.serializeNBT());
         }
         ret.setInteger("state", state.ordinal());
         ret.setTag("inv", inventory.serializeNBT());
-        if(type == 0)
+        if(type == TYPE_BURNER)
             ret.setInteger("fuelTicks", fuelTicks);
 
         return ret;
@@ -140,210 +157,246 @@ public class TileEntityGrabber
             return;
         }
 
+        energyAppliance.requestEnergy(getEnergyUsage(state), this::update);
+    }
+
+    public void update(int energy)
+    {
+
         int startMaxProgress = maxProgress;
         State startState = state;
 
-        maxProgress = (int)(getSpeed() * 20);
-
-        consumeFuelIfNeeded();
-
-        if(hasFuel())
+        if(type != TYPE_BURNER && energy == 0)
         {
-            switch (state)
+            maxProgress = 0;
+        }
+        else
+        {
+
+            maxProgress = (int) (getSpeed() * 20 * getEnergyUsage(state) / energy);
+
+            if(lastMaxProgress != 0)
             {
-                case GRABBING:
-                    consumeFuelTicksIfNeeded();
-                    progress += 1;
+                progress = progress * maxProgress / lastMaxProgress;
+            }
 
-                    if (progress >= maxProgress)
-                    {
-                        state = State.WAITING_TO_GRAB;
-                    }
-                    break;
-                case RETURNING:
-                    consumeFuelTicksIfNeeded();
-                    progress += 1;
+            lastMaxProgress = maxProgress;
 
-                    if(type == 0 && !held.isEmpty() && TileEntityFurnace.isItemFuel(held) && (progress > maxProgress / 2 && progress < maxProgress / 2 + 2))
-                    {
-                        ItemStack fuel = inventory.getStackInSlot(0);
-                        ItemStack newFuel;
-                        if(fuel.getCount() < 5)
+            consumeFuelIfNeeded();
+
+            if (hasFuel())
+            {
+                switch (state)
+                {
+                    case GRABBING:
+                        consumeFuelTicksIfNeeded();
+                        progress += 1;
+
+                        if (progress >= maxProgress)
                         {
-                            newFuel = inventory.insertItem(0, held, true);
+                            state = State.WAITING_TO_GRAB;
+                        }
+                        break;
+                    case RETURNING:
+                        consumeFuelTicksIfNeeded();
+                        progress += 1;
 
-                            if(newFuel != held)
+                        if (type == TYPE_BURNER && !held.isEmpty() && TileEntityFurnace
+                                .isItemFuel(held) && (progress > maxProgress / 2 && progress < maxProgress / 2 + 2))
+                        {
+                            ItemStack fuel = inventory.getStackInSlot(0);
+                            ItemStack newFuel;
+                            if (fuel.getCount() < 5)
                             {
-                                held = inventory.insertItem(0, held, false);
-                                state = State.GRABBING;
-                                progress = maxProgress - progress;
+                                newFuel = inventory.insertItem(0, held, true);
+
+                                if (newFuel != held)
+                                {
+                                    held = inventory.insertItem(0, held, false);
+                                    state = State.GRABBING;
+                                    progress = maxProgress - progress;
+                                }
                             }
                         }
-                    }
 
-                    if (progress >= maxProgress)
-                    {
-                        state = State.WAITING_TO_INSERT;
-                    }
-                    break;
-                case WAITING_TO_GRAB:
-                {
-                    //ok, look for an item source.
-                    BlockPos inputSpace = getInputSpace();
-                    TileEntity inputTileEntity = getInputTileEntity();
-                    IConveyorBelt inputConveyorBelt = null;
-                    IItemHandler inputItemHandler = null;
-
-                    ItemStack prospectiveItem = ItemStack.EMPTY;
-                    int slotNum = -1;
-                    float beltPos = 0f;
-                    EntityItem looseItem = null;
-
-                    BlockPos outputSpace = getOutputSpace();
-                    TileEntity outputTileEntity = getOutputTileEntity();
-                    IConveyorBelt outputConveyorBelt = null;
-                    IItemHandler outputItemHandler = null;
-
-                    if (inputTileEntity != null)
-                    {
-                        inputConveyorBelt = inputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
-                        if(inputConveyorBelt == null)
-                            inputItemHandler = inputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
-                    }
-
-                    if (outputTileEntity != null)
-                    {
-                        outputConveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
-                        if(outputConveyorBelt == null)
-                            outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
-                    }
-
-
-                    if(inputConveyorBelt != null)
-                    {
-                        int track = inputConveyorBelt.trackClosestTo(getFacing().getOpposite());
-                        beltPos = inputConveyorBelt.trackLength(track) / 2;
-
-                        prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
-
-                        if(prospectiveItem.isEmpty() || !isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                        if (progress >= maxProgress)
                         {
-                            track = 1-track;
-                            beltPos = inputConveyorBelt.trackLength(track) / 2;
-                            prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
+                            state = State.WAITING_TO_INSERT;
+                        }
+                        break;
+                    case WAITING_TO_GRAB:
+                    {
+                        //ok, look for an item source.
+                        BlockPos inputSpace = getInputSpace();
+                        TileEntity inputTileEntity = getInputTileEntity();
+                        IConveyorBelt inputConveyorBelt = null;
+                        IItemHandler inputItemHandler = null;
+
+                        ItemStack prospectiveItem = ItemStack.EMPTY;
+                        int slotNum = -1;
+                        float beltPos = 0f;
+                        EntityItem looseItem = null;
+
+                        BlockPos outputSpace = getOutputSpace();
+                        TileEntity outputTileEntity = getOutputTileEntity();
+                        IConveyorBelt outputConveyorBelt = null;
+                        IItemHandler outputItemHandler = null;
+
+                        if (inputTileEntity != null)
+                        {
+                            inputConveyorBelt = inputTileEntity
+                                    .getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
+                            if (inputConveyorBelt == null)
+                                inputItemHandler = inputTileEntity
+                                        .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing());
                         }
 
-                        if(!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                        if (outputTileEntity != null)
                         {
-                            slotNum = track;
+                            outputConveyorBelt = outputTileEntity
+                                    .getCapability(CapabilityConveyor.CONVEYOR, getFacing().getOpposite());
+                            if (outputConveyorBelt == null)
+                                outputItemHandler = outputTileEntity
+                                        .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing()
+                                                .getOpposite());
+                        }
+
+
+                        if (inputConveyorBelt != null)
+                        {
+                            int track = inputConveyorBelt.trackClosestTo(getFacing().getOpposite());
+                            beltPos = inputConveyorBelt.trackLength(track) / 2;
+
+                            prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
+
+                            if (prospectiveItem
+                                        .isEmpty() || !isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                            {
+                                track = 1 - track;
+                                beltPos = inputConveyorBelt.trackLength(track) / 2;
+                                prospectiveItem = inputConveyorBelt.extract(track, beltPos, beltPos * 2, true);
+                            }
+
+                            if (!prospectiveItem
+                                    .isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                            {
+                                slotNum = track;
+                            }
+                            else
+                            {
+                                prospectiveItem = ItemStack.EMPTY;
+                            }
+                        }
+                        else if (inputItemHandler != null)
+                        {
+                            for (int i = 0; i < inputItemHandler.getSlots(); i++)
+                            {
+                                prospectiveItem = inputItemHandler.extractItem(i, 1, true);
+                                if (!prospectiveItem
+                                        .isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                                {
+                                    slotNum = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (prospectiveItem.isEmpty())
+                        {
+                            //no inventory, or it's empty... maybe there's a loose item?
+                            List<EntityItem> items = world
+                                    .getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(inputSpace));
+
+                            for (EntityItem item : items)
+                            {
+                                if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                                {
+                                    prospectiveItem = item.getItem();
+                                    looseItem = item;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!prospectiveItem.isEmpty())
+                        {
+                            //cool beans!
+                            if (slotNum != -1 && inputConveyorBelt != null)
+                            {
+                                held = inputConveyorBelt.extract(slotNum, beltPos, beltPos * 2, false);
+                            }
+                            else if (slotNum != -1)
+                            {
+                                held = inputItemHandler.extractItem(slotNum, 1, false);
+                            }
+                            else if (looseItem != null)
+                            {
+                                held = prospectiveItem.copy();
+                                held.setCount(1);
+
+                                looseItem.getItem().shrink(held.getCount());
+                            }
+                        }
+
+                        if (!held.isEmpty())
+                        {
+                            consumeFuelTicksIfNeeded();
+                            state = State.RETURNING;
+                            progress = 0;
+                        }
+                    }
+                    break;
+                    case WAITING_TO_INSERT:
+                        BlockPos outputSpace = getOutputSpace();
+                        TileEntity outputTileEntity = getOutputTileEntity();
+                        IConveyorBelt conveyorBelt = null;
+                        IItemHandler outputItemHandler = null;
+
+                        if (outputTileEntity != null)
+                        {
+                            conveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, null);
+                            outputItemHandler = outputTileEntity
+                                    .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing()
+                                            .getOpposite());
+                        }
+
+                        if (conveyorBelt != null)
+                        {
+                            int oppositeTrack = conveyorBelt.trackClosestTo(getFacing().getOpposite());
+                            held = conveyorBelt
+                                    .insert(oppositeTrack, conveyorBelt.trackLength(oppositeTrack) * 0.4f, held, false);
+                        }
+                        else if (outputItemHandler != null)
+                        {
+                            held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
                         }
                         else
                         {
-                            prospectiveItem = ItemStack.EMPTY;
-                        }
-                    }
-                    else if (inputItemHandler != null)
-                    {
-                        for (int i = 0; i < inputItemHandler.getSlots(); i++)
-                        {
-                            prospectiveItem = inputItemHandler.extractItem(i, 1, true);
-                            if (!prospectiveItem.isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
+                            List<EntityItem> items = world
+                                    .getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(outputSpace));
+                            if (items.isEmpty())
                             {
-                                slotNum = i;
-                                break;
+                                ItemStack newStack = held.copy();
+                                newStack.setCount(1);
+                                held.shrink(1);
+
+                                EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace
+                                        .getY(), outputSpace.getZ() + 0.5, newStack);
+                                newItem.setVelocity(0, 0, 0);
+
+                                world.spawnEntity(newItem);
                             }
                         }
-                    }
 
-                    if (prospectiveItem.isEmpty())
-                    {
-                        //no inventory, or it's empty... maybe there's a loose item?
-                        List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(inputSpace));
-
-                        for (EntityItem item : items)
+                        if (held.isEmpty())
                         {
-                            if (isValidToOutput(item.getItem(), outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
-                            {
-                                prospectiveItem = item.getItem();
-                                looseItem = item;
-                                break;
-                            }
+                            consumeFuelTicksIfNeeded();
+                            state = State.GRABBING;
+                            progress = 0;
                         }
-                    }
 
-                    if (!prospectiveItem.isEmpty())
-                    {
-                        //cool beans!
-                        if(slotNum != -1 && inputConveyorBelt != null)
-                        {
-                            held = inputConveyorBelt.extract(slotNum, beltPos, beltPos * 2, false);
-                        }
-                        else if (slotNum != -1)
-                        {
-                            held = inputItemHandler.extractItem(slotNum, 1, false);
-                        }
-                        else if (looseItem != null)
-                        {
-                            held = prospectiveItem.copy();
-                            held.setCount(1);
-
-                            looseItem.getItem().shrink(held.getCount());
-                        }
-                    }
-
-                    if (!held.isEmpty())
-                    {
-                        consumeFuelTicksIfNeeded();
-                        state = State.RETURNING;
-                        progress = 0;
-                    }
+                        break;
                 }
-                break;
-                case WAITING_TO_INSERT:
-                    BlockPos outputSpace = getOutputSpace();
-                    TileEntity outputTileEntity = getOutputTileEntity();
-                    IConveyorBelt conveyorBelt = null;
-                    IItemHandler outputItemHandler = null;
-
-                    if (outputTileEntity != null)
-                    {
-                        conveyorBelt = outputTileEntity.getCapability(CapabilityConveyor.CONVEYOR, null);
-                        outputItemHandler = outputTileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, getFacing().getOpposite());
-                    }
-
-                    if(conveyorBelt != null)
-                    {
-                        int oppositeTrack = conveyorBelt.trackClosestTo(getFacing().getOpposite());
-                        held = conveyorBelt.insert(oppositeTrack, conveyorBelt.trackLength(oppositeTrack) * 0.4f, held, false);
-                    }
-                    else if (outputItemHandler != null)
-                    {
-                        held = ItemUtils.insertItemIfPossible(held, outputItemHandler);
-                    }
-                    else
-                    {
-                        List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(outputSpace));
-                        if (items.isEmpty())
-                        {
-                            ItemStack newStack = held.copy();
-                            newStack.setCount(1);
-                            held.shrink(1);
-
-                            EntityItem newItem = new EntityItem(world, outputSpace.getX() + 0.5, outputSpace.getY(), outputSpace.getZ() + 0.5, newStack);
-                            newItem.setVelocity(0, 0, 0);
-
-                            world.spawnEntity(newItem);
-                        }
-                    }
-
-                    if (held.isEmpty())
-                    {
-                        consumeFuelTicksIfNeeded();
-                        state = State.GRABBING;
-                        progress = 0;
-                    }
-
-                    break;
             }
         }
 
@@ -356,6 +409,68 @@ public class TileEntityGrabber
         //{
         //    FactoryCraft.logger.info("Transition from {} to {} @ {}", startState, state, progress);
         //}
+    }
+
+    private int getEnergyUsage(State state)
+    {
+        switch(type)
+        {
+            case TYPE_BURNER:
+                return 0;
+            case TYPE_REGULAR:
+                switch (state)
+                {
+                    case WAITING_TO_GRAB:
+                    case WAITING_TO_INSERT:
+                        return 20;
+                    case GRABBING:
+                    case RETURNING:
+                        return 650;
+                }
+            case TYPE_FAST:
+                switch(state)
+                {
+                    case WAITING_TO_GRAB:
+                    case WAITING_TO_INSERT:
+                        return 25;
+                    case GRABBING:
+                    case RETURNING:
+                        return 2300;
+                }
+            case TYPE_LONG:
+                switch(state)
+                {
+                    case WAITING_TO_GRAB:
+                    case WAITING_TO_INSERT:
+                        return 20;
+                    case GRABBING:
+                    case RETURNING:
+                        return 900;
+                }
+            case TYPE_STACK:
+            case TYPE_STACK_FILTER:
+                switch(state)
+                {
+                    case WAITING_TO_GRAB:
+                    case WAITING_TO_INSERT:
+                        return 50;
+                    case GRABBING:
+                    case RETURNING:
+                        return 6600;
+                }
+            case TYPE_FILTER:
+                switch(state)
+                {
+                    case WAITING_TO_GRAB:
+                    case WAITING_TO_INSERT:
+                        return 25;
+                    case GRABBING:
+                    case RETURNING:
+                        return 2600;
+                }
+            default:
+                throw new Error("Unknown type");
+        }
     }
 
     private TileEntity getTileEntityNear(BlockPos pos)
@@ -383,7 +498,7 @@ public class TileEntityGrabber
 
     private void consumeFuelIfNeeded()
     {
-        if(type != 0)
+        if(type != TYPE_BURNER)
             return;
 
         if(fuelTicks > 0) return;
@@ -403,7 +518,7 @@ public class TileEntityGrabber
 
     private void consumeFuelTicksIfNeeded()
     {
-        if(type != 0)
+        if(type != TYPE_BURNER)
             return;
 
         if(fuelTicks > 0)
@@ -412,7 +527,7 @@ public class TileEntityGrabber
 
     private boolean hasFuel()
     {
-        if(type == 0)
+        if(type == TYPE_BURNER)
             return fuelTicks > 0;
         return true;
     }
@@ -482,7 +597,14 @@ public class TileEntityGrabber
             case RETURNING:
             case GRABBING:
 
-                float v = (progress + partial) / maxProgress;
+                float v;
+                if (maxProgress == 0)
+                {
+                    v = ((float)progress) / lastMaxProgress;
+                }
+                else {
+                    v = (progress + partial) / maxProgress;
+                }
 
                 if(state == State.RETURNING)
                 {
@@ -518,10 +640,17 @@ public class TileEntityGrabber
     {
         switch (type)
         {
-            case 0:
+            case TYPE_BURNER:
                 return 1.69;
-            case 1:
+            case TYPE_REGULAR:
                 return 1.2;
+            case TYPE_LONG:
+                return 0.867;
+            case TYPE_FAST:
+            case TYPE_FILTER:
+            case TYPE_STACK:
+            case TYPE_STACK_FILTER:
+                return 0.433;
         }
         return 10;
     }
@@ -540,7 +669,7 @@ public class TileEntityGrabber
         if(limitedItems == null)
         {
             limitedItems = NonNullList.create();
-            if(type == 0)
+            if(type == TYPE_BURNER)
             {
                 limitedItems.add(new ItemStack(Items.COAL, 5));
             }
@@ -579,6 +708,7 @@ public class TileEntityGrabber
         }
     }
 
+
     public enum State
     {
         GRABBING,          // -> WAITING_TO_GRAB
@@ -592,7 +722,7 @@ public class TileEntityGrabber
     {
         public CustomItemStackHandler()
         {
-            super(type == 0 ? 1 : 0);
+            super(type == TYPE_BURNER ? 1 : 0);
         }
 
         @Override
