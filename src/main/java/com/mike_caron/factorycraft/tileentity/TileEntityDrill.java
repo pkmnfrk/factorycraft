@@ -7,7 +7,7 @@ import com.mike_caron.factorycraft.api.IOreDeposit;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.block.BlockDrill;
-import com.mike_caron.factorycraft.energy.EnergyAppliance;
+import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
@@ -511,7 +511,7 @@ public class TileEntityDrill
     }
 
     private class MyEnergyConsumer
-        extends EnergyAppliance
+        extends ElectricalEnergyAppliance
     {
         MyEnergyConsumer()
         {

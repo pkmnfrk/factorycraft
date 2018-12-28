@@ -559,7 +559,8 @@ public class TileEntityConveyor
                 items.add(new Tuple2<>(position, newStack));
                 items.sort((o1, o2) -> Float.compare(o1.first, o2.first));
 
-                markAndNotify();
+                if(!world.isRemote)
+                    markAndNotify();
             }
 
             return ret;
@@ -584,7 +585,8 @@ public class TileEntityConveyor
             {
                 items.remove(ret_item);
 
-                markAndNotify();
+                if(!world.isRemote)
+                    markAndNotify();
             }
 
             return ret;
@@ -737,7 +739,7 @@ public class TileEntityConveyor
                 }
             }
 
-            if(changed)
+            if(changed && !world.isRemote)
             {
                 markAndNotify();
             }
@@ -782,7 +784,7 @@ public class TileEntityConveyor
                 }
             }
 
-            if(changed)
+            if(changed && !world.isRemote)
             {
                 markAndNotify();
             }
@@ -831,7 +833,7 @@ public class TileEntityConveyor
                 }
             }
 
-            if(changed)
+            if(changed && !world.isRemote)
             {
                 markAndNotify();
             }

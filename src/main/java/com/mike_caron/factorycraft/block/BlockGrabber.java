@@ -3,9 +3,6 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.client.rendering.GrabberRenderer;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
-import mcjty.theoneprobe.api.IProbeHitData;
-import mcjty.theoneprobe.api.IProbeInfo;
-import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -95,25 +92,6 @@ public class BlockGrabber
             double vz = (rand.nextFloat() - 0.5) * 0.1;
 
             worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, x, y, z, vx, vy, vz);
-        }
-    }
-
-    @Override
-    public boolean hasInfo(EntityPlayer player)
-    {
-        return true;
-    }
-
-    @Override
-    protected void addBlockProbeInfo(ProbeMode mode, IProbeInfo info, EntityPlayer player, World world, IBlockState blockState, IProbeHitData data)
-    {
-        TileEntityGrabber te = (TileEntityGrabber)world.getTileEntity(data.getPos());
-
-        info
-            .text(te.getState().toString());
-        if(type == TYPE_BURNER)
-        {
-            info.horizontal().text("Fuel").text(Integer.toString(te.getFuelTicks()));
         }
     }
 
