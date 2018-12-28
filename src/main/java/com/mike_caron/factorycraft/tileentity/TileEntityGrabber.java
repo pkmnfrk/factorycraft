@@ -50,8 +50,6 @@ public class TileEntityGrabber
     private int maxProgress = 0;
     private int lastMaxProgress = 0;
 
-    private NonNullList<ItemStack> limitedItems;
-
     public TileEntityGrabber()
     {
         super();
@@ -82,8 +80,10 @@ public class TileEntityGrabber
     @Override
     public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
     {
-        if(null != getCapability(capability, facing))
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
+        {
             return true;
+        }
 
         return super.hasCapability(capability, facing);
     }
@@ -92,9 +92,9 @@ public class TileEntityGrabber
     @Override
     public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
     {
-        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null && energyAppliance instanceof SolidEnergyAppliance)
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
         {
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(((SolidEnergyAppliance) energyAppliance).getInventory());
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(energyAppliance.getInventory());
         }
         return super.getCapability(capability, facing);
     }
@@ -638,15 +638,7 @@ public class TileEntityGrabber
     @Override
     public NonNullList<ItemStack> getLimitedItems()
     {
-        if(limitedItems == null)
-        {
-            limitedItems = NonNullList.create();
-            if(type == TYPE_BURNER)
-            {
-                limitedItems.add(new ItemStack(Items.COAL, 5));
-            }
-        }
-        return limitedItems;
+        return energyAppliance.getLimitedItems();
     }
 
     public ItemStack getHeld()

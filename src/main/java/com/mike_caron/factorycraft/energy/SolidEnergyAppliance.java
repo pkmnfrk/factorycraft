@@ -1,5 +1,6 @@
 package com.mike_caron.factorycraft.energy;
 
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -13,6 +14,8 @@ import java.util.function.IntConsumer;
 public class SolidEnergyAppliance
     extends EnergyAppliance
 {
+    private static NonNullList<ItemStack> limitedItems;
+
     private final ItemStackHandler fuel = new FuelItemStackHandler(1);
     private int joulesBanked;
     private float efficiency = 1f;
@@ -21,6 +24,11 @@ public class SolidEnergyAppliance
     {
         super(host);
         joulesBanked = freeEnergy;
+    }
+
+    public SolidEnergyAppliance(TileEntity host)
+    {
+        this(host, 0);
     }
 
     public void setEfficiency(float efficiency)
@@ -78,9 +86,23 @@ public class SolidEnergyAppliance
         callback.accept(0);
     }
 
+    @Override
     public ItemStackHandler getInventory()
     {
         return fuel;
+    }
+
+    @Nonnull
+    @Override
+    public NonNullList<ItemStack> getLimitedItems()
+    {
+        if(limitedItems == null)
+        {
+            limitedItems = NonNullList.create();
+            limitedItems.add(new ItemStack(Items.COAL, 5));
+
+        }
+        return limitedItems;
     }
 
     private int fuelValue(ItemStack itemStack)
@@ -109,6 +131,8 @@ public class SolidEnergyAppliance
         efficiency = compound.getFloat("efficiency");
         fuel.deserializeNBT(compound.getCompoundTag("inventory"));
     }
+
+
 
     class FuelItemStackHandler
         extends ItemStackHandler

@@ -8,15 +8,14 @@ import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.block.BlockDrill;
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
+import com.mike_caron.factorycraft.energy.EnergyAppliance;
+import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
@@ -33,7 +32,6 @@ import net.minecraftforge.common.model.animation.CapabilityAnimation;
 import net.minecraftforge.common.model.animation.IAnimationStateMachine;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,16 +43,11 @@ public class TileEntityDrill
     private int progress = 0;
     private int maxProgress = 0;
     private int lastMaxProgress = 0;
-    private int fuelTicks = 0;
 
     private IAnimationStateMachine asm = null;
     private final TimeValues.VariableValue animProgress = new TimeValues.VariableValue(0f);
 
-    private ItemStackHandler inventory;
-
-    private NonNullList<ItemStack> limitedItems;
-
-    private MyEnergyConsumer energyConsumer;
+    private EnergyAppliance energy;
 
     public TileEntityDrill()
     {
@@ -66,10 +59,14 @@ public class TileEntityDrill
     {
         super.onKnowingType();
 
-        this.inventory = new CustomItemStackHandler();
-
-        if(this.type != 0)
-            this.energyConsumer = new MyEnergyConsumer();
+        if(this.type == 0)
+        {
+            this.energy = new SolidEnergyAppliance(this);
+        }
+        else
+        {
+            this.energy = new ElectricalEnergyAppliance(this);
+        }
     }
 
     public TileEntityDrill(int type)
@@ -116,7 +113,7 @@ public class TileEntityDrill
             return CapabilityAnimation.ANIMATION_CAPABILITY.cast(asm);
         }
         else if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(energy.getInventory());
 
         return super.getCapability(capability, facing);
     }
@@ -129,13 +126,6 @@ public class TileEntityDrill
         progress = compound.getInteger("progress");
         if(compound.hasKey("lastMaxProgress"))
             lastMaxProgress = compound.getInteger("lastMaxProgress");
-
-        if(type == 0)
-        {
-            fuelTicks = compound.getInteger("fuelTicks");
-        }
-
-        inventory.deserializeNBT(compound.getCompoundTag("inv"));
 
         int newMaxProgress = compound.getInteger("maxProgress");
         if(asm != null)
@@ -159,6 +149,8 @@ public class TileEntityDrill
         {
             animProgress.setValue(((float)progress) / maxProgress);
         }
+
+        energy.deserializeNBT(compound.getCompoundTag("energy"));
     }
 
     @Override
@@ -170,12 +162,7 @@ public class TileEntityDrill
         ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
         ret.setInteger("lastMaxProgress", lastMaxProgress);
-        if(type == 0)
-        {
-            ret.setInteger("fuelTicks", fuelTicks);
-        }
-        ret.setTag("inv", inventory.serializeNBT());
-
+        ret.setTag("energy", energy.serializeNBT());
         return ret;
     }
 
@@ -185,9 +172,7 @@ public class TileEntityDrill
         if(world.isRemote)
         {
             loadAsm();
-        }
 
-        if(world.isRemote) {
             if(maxProgress > 0)
             {
                 progress += 1f;
@@ -196,31 +181,7 @@ public class TileEntityDrill
             return;
         }
 
-        if(type == 0 && fuelTicks <= 0)
-        {
-            ItemStack fuel = inventory.getStackInSlot(0);
-            if(!fuel.isEmpty())
-            {
-                fuelTicks += TileEntityFurnace.getItemBurnTime(fuel);
-
-                Item item = fuel.getItem();
-                fuel.shrink(1);
-                if (fuel.isEmpty()) {
-                    ItemStack item1 = item.getContainerItem(fuel);
-                    inventory.setStackInSlot(0, item1);
-                }
-            }
-        }
-
-        if(type == 0)
-        {
-            update(0);
-        }
-        else
-        {
-            energyConsumer.requestEnergy(getEnergyUsage());
-        }
-
+        energy.requestEnergy(getEnergyUsage(), this::update);
     }
 
     public void update(int energy)
@@ -230,7 +191,7 @@ public class TileEntityDrill
         maxProgress = 0;
 
 
-        if(energy > 0 || fuelTicks > 0)
+        if(energy > 0)
         {
 
             IOreDeposit oreDeposit = getIOreDeposit();
@@ -258,10 +219,6 @@ public class TileEntityDrill
 
                         progress += 1;
 
-                        if (type == 0)
-                        {
-                            fuelTicks -= 1;
-                        }
                         markDirty();
 
                         if (progress >= maxProgress)
@@ -418,6 +375,11 @@ public class TileEntityDrill
         return deposit.getOreDeposit(x, z);
     }
 
+    public int getEnergyUsage()
+    {
+        return 15000;
+    }
+
     private double getPower()
     {
         switch(type){
@@ -452,76 +414,21 @@ public class TileEntityDrill
     @Override
     public NonNullList<ItemStack> getLimitedItems()
     {
-        if(limitedItems == null)
-        {
-            limitedItems = NonNullList.create();
-            if(type == 0)
-            {
-                limitedItems.add(new ItemStack(Items.COAL, 5));
-            }
-        }
-        return limitedItems;
+        return energy.getLimitedItems();
     }
 
     public void addItemsToDrop(NonNullList<ItemStack> items)
     {
-        for(int i = 0; i < inventory.getSlots(); i++)
+        if(energy.getInventory() != null)
         {
-            if(!inventory.getStackInSlot(i).isEmpty())
+            for (int i = 0; i < energy.getInventory().getSlots(); i++)
             {
-                items.add(inventory.getStackInSlot(i));
+                if (!energy.getInventory().getStackInSlot(i).isEmpty())
+                {
+                    items.add(energy.getInventory().getStackInSlot(i));
+                }
             }
         }
     }
 
-    public int getEnergyUsage()
-    {
-        if(type == 0) return 0;
-        return 15000;
-    }
-
-    class CustomItemStackHandler
-        extends ItemStackHandler
-    {
-        public CustomItemStackHandler()
-        {
-            super(type == 0 ? 1 : 0);
-        }
-
-        @Override
-        protected void onContentsChanged(int slot)
-        {
-            super.onContentsChanged(slot);
-
-            markDirty();
-        }
-
-        @Override
-        public boolean isItemValid(int slot, @Nonnull ItemStack stack)
-        {
-            if(!super.isItemValid(slot, stack)) return false;
-
-            if(slot == 0) //fuel
-            {
-                return TileEntityFurnace.isItemFuel(stack);
-            }
-
-            return false;
-        }
-    }
-
-    private class MyEnergyConsumer
-        extends ElectricalEnergyAppliance
-    {
-        MyEnergyConsumer()
-        {
-            super(TileEntityDrill.this);
-        }
-
-        @Override
-        public void onEnergyProvided(int amount)
-        {
-            update(amount);
-        }
-    }
 }
