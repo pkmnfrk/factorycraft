@@ -154,7 +154,7 @@ public class EnergyManagerTest
     class DummyTileEntity
         extends TileEntity
     {
-        IEnergyConnector connector = new EnergyConnector(this, 5, 3);
+        IEnergyConnector connector = new TestEnergyConnector(this, 5, 3);
 
         @Override
         public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
@@ -167,6 +167,31 @@ public class EnergyManagerTest
         public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
         {
             return (T)connector;
+        }
+    }
+
+    class TestEnergyConnector
+        extends EnergyConnector
+    {
+        int connectRadius, powerRadius;
+
+        public TestEnergyConnector(TileEntity host, int connectRadius, int powerRadius)
+        {
+            super(host);
+            this.connectRadius = connectRadius;
+            this.powerRadius = powerRadius;
+        }
+
+        @Override
+        public int getConnectRadius()
+        {
+            return connectRadius;
+        }
+
+        @Override
+        public int getPowerRadius()
+        {
+            return powerRadius;
         }
     }
 }

@@ -5,10 +5,7 @@ import com.mike_caron.factorycraft.TestEnvironment;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyManager;
-import com.mike_caron.factorycraft.util.Graph;
-import com.mike_caron.factorycraft.util.INBTSerializer;
-import com.mike_caron.factorycraft.util.ITileEntityFinder;
-import com.mike_caron.factorycraft.util.Tuple3i;
+import com.mike_caron.factorycraft.util.*;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
 
 public class EnergyManager
         implements IEnergyManager
@@ -57,7 +55,7 @@ public class EnergyManager
 
         int radiusSq = connector.getConnectRadius();
 
-        FactoryCraft.logger.info("Hooking up connector with radius {}", radiusSq);
+        //FactoryCraft.logger.info("Hooking up connector with radius {}", radiusSq);
 
         Set<Tuple3i> nearbyNodes = graph
                 .nodesMatching((node, value) -> {
@@ -66,7 +64,7 @@ public class EnergyManager
                     double dist = getDistance(tup, node);
                     int effectiveRadius = Math.min(radiusSq, con.getConnectRadius());
 
-                    FactoryCraft.logger.info("Can we connect to {} (distance={}) with effective radius of {}?", node, dist, effectiveRadius);
+                    //FactoryCraft.logger.info("Can we connect to {} (distance={}) with effective radius of {}?", node, dist, effectiveRadius);
 
                     return dist <= effectiveRadius;
                 });
@@ -119,6 +117,7 @@ public class EnergyManager
         for (Tuple3i neighbor : nearbyNodes)
         {
             graph.addEdge(tup, neighbor);
+            notifyConnectionsChanged(neighbor);
         }
 
         try
@@ -137,7 +136,13 @@ public class EnergyManager
         Tuple3i tup = makeTuple(pos);
 
         Node node = graph.getValue(tup);
+        Set<Tuple3i> connections = graph.getEdges(tup);
         graph.removeNode(tup);
+
+        for(Tuple3i c : connections)
+        {
+            notifyConnectionsChanged(c);
+        }
 
         ensureNetworkIntegrity();
     }
@@ -278,6 +283,15 @@ public class EnergyManager
         }
     }
 
+    @Override
+    @Nonnull
+    public List<BlockPos> getConnections(@Nonnull BlockPos orig)
+    {
+        Tuple3i tup = makeTuple(orig);
+
+        return graph.getEdges(tup).stream().map(this::makeBlockPos).collect(Collectors.toList());
+    }
+
     private void ensureNetworkIntegrity()
     {
         List<Set<Tuple3i>> sets = graph.getDiscreteGraphs();
@@ -340,8 +354,18 @@ public class EnergyManager
         }
 
         connector.notifyNetworkChange(newNetwork);
+    }
 
+    private void notifyConnectionsChanged(Tuple3i node)
+    {
+        IEnergyConnector connector = getConnectorAt(node);
 
+        if (connector == null)
+        {
+            throw new IllegalStateException("Missing connector for registered energy node at " + node.toString());
+        }
+
+        connector.notifyConnectionsChanged();
     }
 
     private IEnergyConnector getConnectorAt(Tuple3i node)

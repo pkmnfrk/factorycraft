@@ -1,5 +1,6 @@
 package com.mike_caron.factorycraft.block;
 
+import com.mike_caron.factorycraft.client.rendering.ElectricalPoleRenderer;
 import com.mike_caron.factorycraft.tileentity.TileEntityElectricalPole;
 import com.mike_caron.mikesmodslib.block.BlockBase;
 import mcjty.theoneprobe.api.IProbeHitData;
@@ -17,6 +18,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -35,6 +37,14 @@ public class BlockElectricalPole
         super(getMaterialForType(type), name);
 
         this.type = type;
+    }
+
+    @Override
+    public void initModel()
+    {
+        super.initModel();
+
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityElectricalPole.class, new ElectricalPoleRenderer());
     }
 
     @Override
@@ -144,7 +154,7 @@ public class BlockElectricalPole
     @Override
     public void addProbeInfo(ProbeMode probeMode, IProbeInfo iProbeInfo, EntityPlayer entityPlayer, World world, IBlockState iBlockState, IProbeHitData iProbeHitData)
     {
-        TileEntityElectricalPole te = (TileEntityElectricalPole)world.getTileEntity(iProbeHitData.getPos());
+        TileEntityElectricalPole te = findTileEntity(world, iProbeHitData.getPos());
 
         if(te != null)
         {
@@ -156,6 +166,21 @@ public class BlockElectricalPole
     public boolean hasInfo(EntityPlayer player)
     {
         return true;
+    }
+
+    private TileEntityElectricalPole findTileEntity(World world, BlockPos pos)
+    {
+        IBlockState state = world.getBlockState(pos);
+        while(state.getBlock() instanceof BlockElectricalPole && state.getValue(PART) != 2)
+        {
+            pos = pos.up();
+            state = world.getBlockState(pos);
+        }
+
+        if(!(state.getBlock() instanceof BlockElectricalPole))
+            return null;
+
+        return (TileEntityElectricalPole)world.getTileEntity(pos);
     }
 
     @Override

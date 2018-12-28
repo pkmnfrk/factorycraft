@@ -8,6 +8,7 @@ public interface IEnergyConnector
     int getConnectRadius();
     int getPowerRadius();
     void notifyNetworkChange(UUID newNetwork);
+    void notifyConnectionsChanged();
     UUID getNetworkId();
 
     void requestEnergy(int amount, IntConsumer callback);

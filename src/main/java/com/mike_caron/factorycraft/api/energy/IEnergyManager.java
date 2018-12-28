@@ -6,6 +6,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.IntConsumer;
 
@@ -24,4 +25,7 @@ public interface IEnergyManager
 
     void requestEnergy(UUID network, int amount, IntConsumer callback);
     void provideEnergy(UUID network, int amount, IntConsumer callback);
+
+    @Nonnull
+    List<BlockPos> getConnections(@Nonnull BlockPos orig);
 }
