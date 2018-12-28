@@ -13,40 +13,55 @@ import java.util.function.IntConsumer;
 public class SolidEnergyAppliance
     extends EnergyAppliance
 {
-    private ItemStackHandler fuel = new FuelItemStackHandler(1);
-    private int joulesBanked = 0;
+    private final ItemStackHandler fuel = new FuelItemStackHandler(1);
+    private int joulesBanked;
+    private float efficiency = 1f;
 
-    public SolidEnergyAppliance(TileEntity host)
+    public SolidEnergyAppliance(TileEntity host, int freeEnergy)
     {
         super(host);
+        joulesBanked = freeEnergy;
+    }
+
+    public void setEfficiency(float efficiency)
+    {
+        this.efficiency = efficiency;
+    }
+
+    public float getEfficiency()
+    {
+        return efficiency;
     }
 
     @Override
     public void requestEnergy(int amount, @Nonnull IntConsumer callback)
     {
-        while(true)
+        if(joulesBanked < amount)
         {
-            ItemStack f = fuel.getStackInSlot(0);
-            if(f.isEmpty())
-                break;
-
-            int value = fuelValue(f);
-
-            if(value > 0)
+            while (true)
             {
-                f.shrink(1);
-                joulesBanked += value;
+                ItemStack f = fuel.getStackInSlot(0);
+                if (f.isEmpty())
+                    break;
 
-                host.markDirty();
+                int value = (int) (fuelValue(f) * efficiency);
 
-                if(joulesBanked >= amount || f.isEmpty())
+                if (value > 0)
+                {
+                    f.shrink(1);
+                    joulesBanked += value;
+
+                    host.markDirty();
+
+                    if (joulesBanked >= amount || f.isEmpty())
+                    {
+                        break;
+                    }
+                }
+                else
                 {
                     break;
                 }
-            }
-            else
-            {
-                break;
             }
         }
 
@@ -81,6 +96,7 @@ public class SolidEnergyAppliance
         NBTTagCompound ret = super.serializeNBT();
 
         ret.setInteger("joulesBanked", joulesBanked);
+        ret.setFloat("efficiency", efficiency);
         ret.setTag("inventory", fuel.serializeNBT());
 
         return ret;
@@ -90,6 +106,7 @@ public class SolidEnergyAppliance
     public void deserializeNBT(NBTTagCompound compound)
     {
         joulesBanked = compound.getInteger("joulesBanked");
+        efficiency = compound.getFloat("efficiency");
         fuel.deserializeNBT(compound.getCompoundTag("inventory"));
     }
 
@@ -116,6 +133,8 @@ public class SolidEnergyAppliance
         protected void onContentsChanged(int slot)
         {
             super.onContentsChanged(slot);
+
+            host.markDirty();
         }
     }
 }

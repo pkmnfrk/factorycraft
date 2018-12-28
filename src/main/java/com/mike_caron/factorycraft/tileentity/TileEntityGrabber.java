@@ -71,7 +71,7 @@ public class TileEntityGrabber
 
         if(type == TYPE_BURNER)
         {
-            energyAppliance = new SolidEnergyAppliance(this);
+            energyAppliance = new SolidEnergyAppliance(this, getEnergyUsage(State.GRABBING) * 100);
         }
         else
         {
@@ -164,14 +164,24 @@ public class TileEntityGrabber
         int startMaxProgress = maxProgress;
         State startState = state;
 
-        if(energy == 0)
+        int usage = getEnergyUsage(state);
+
+        if(energy == 0 && usage != 0)
         {
             maxProgress = 0;
         }
         else
         {
 
-            maxProgress = (int) (getSpeed() * 20 * getEnergyUsage(state) / energy);
+            if(usage != 0)
+            {
+                maxProgress = (int) (getSpeed() * 20 * usage / energy);
+            }
+            else
+            {
+                maxProgress = 0;
+            }
+
 
             if(lastMaxProgress != 0)
             {
