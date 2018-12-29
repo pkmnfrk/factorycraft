@@ -1,7 +1,10 @@
 package com.mike_caron.factorycraft.proxy;
 
+import com.mike_caron.factorycraft.client.gui.GuiDrill;
 import com.mike_caron.factorycraft.client.gui.GuiGrabber;
+import com.mike_caron.factorycraft.storage.ContainerDrill;
 import com.mike_caron.factorycraft.storage.ContainerGrabber;
+import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -23,7 +26,11 @@ public class GuiProxy
 
         if(te instanceof TileEntityGrabber)
         {
-            return new ContainerGrabber(entityPlayer.inventory, ((TileEntityGrabber)te));
+            return new ContainerGrabber(entityPlayer.inventory, (TileEntityGrabber)te);
+        }
+        else if(te instanceof TileEntityDrill)
+        {
+            return new ContainerDrill(entityPlayer.inventory, (TileEntityDrill)te);
         }
         return null;
     }
@@ -38,6 +45,10 @@ public class GuiProxy
         if(te instanceof TileEntityGrabber)
         {
             return new GuiGrabber(new ContainerGrabber(entityPlayer.inventory, (TileEntityGrabber)te), (TileEntityGrabber)te);
+        }
+        else if(te instanceof TileEntityDrill)
+        {
+            return new GuiDrill(new ContainerDrill(entityPlayer.inventory, (TileEntityDrill)te), (TileEntityDrill)te);
         }
         return null;
     }

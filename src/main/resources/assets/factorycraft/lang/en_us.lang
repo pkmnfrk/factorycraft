@@ -10,7 +10,8 @@ tile.factorycraft:conveyor_slow.name=Conveyor Belt
 tile.factorycraft:conveyor_medium.name=Faster Conveyor Belt
 tile.factorycraft:conveyor_fast.name=Fastest Conveyor Belt
 
-tile.factorycraft:drill_burner.name=Burner Drill
+tile.factorycraft:drill_burner.name=Burner Mining Drill
+tile.factorycraft:drill.name=Electric Mining Drill
 
 tile.factorycraft:grabber.name=Inserter
 tile.factorycraft:grabber_burner.name=Burner Inserter

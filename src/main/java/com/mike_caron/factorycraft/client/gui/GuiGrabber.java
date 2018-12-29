@@ -8,7 +8,7 @@ import com.mike_caron.mikesmodslib.gui.GuiUtil;
 import java.awt.Color;
 
 public class GuiGrabber
-    extends GuiBase<ContainerGrabber, TileEntityGrabber>
+    extends GuiTEContainerBase<ContainerGrabber, TileEntityGrabber>
 {
     GuiProgressBar fuelSupply = new GuiProgressBar(30, 28, 176 - 10 - 10 - 20, 4);
 
@@ -61,9 +61,4 @@ public class GuiGrabber
         }
     }
 
-    @Override
-    protected String getTitleKey()
-    {
-        return "tile.factorycraft:grabber_burner.name";
-    }
 }

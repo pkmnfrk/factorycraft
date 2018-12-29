@@ -9,7 +9,7 @@ import net.minecraft.util.ResourceLocation;
 
 import java.awt.Color;
 
-public class GuiBase<C extends ContainerBase, T extends TileEntityBase>
+public class GuiTEContainerBase<C extends ContainerBase, T extends TileEntityBase>
     extends GuiContainerBase
 {
     protected static final ResourceLocation background = new ResourceLocation(FactoryCraft.modId, "textures/gui/misc.png");
@@ -17,7 +17,7 @@ public class GuiBase<C extends ContainerBase, T extends TileEntityBase>
     protected C container;
     protected T tileEntity;
 
-    public GuiBase(C inventorySlotsIn, T tileEntity, int width, int height)
+    public GuiTEContainerBase(C inventorySlotsIn, T tileEntity, int width, int height)
     {
         super(inventorySlotsIn, width, height);
         this.container = inventorySlotsIn;
@@ -32,5 +32,11 @@ public class GuiBase<C extends ContainerBase, T extends TileEntityBase>
         GuiUtil.bindTexture(background);
         GuiUtil.draw3x3Stretched(guiLeft, guiTop, xSize, ySize, 32, 32);
         GuiUtil.drawTexturePart(guiLeft + xSize / 2 - 81, guiTop + ySize - 83, 162, 76, 0, 180, 256, 256);
+    }
+
+    @Override
+    protected String getTitleKey()
+    {
+        return tileEntity.getWorld().getBlockState(tileEntity.getPos()).getBlock().getTranslationKey() + ".name";
     }
 }

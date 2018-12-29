@@ -17,6 +17,6 @@ public class TileEntityCreativePower
     {
         if(world.isRemote) return;
 
-        energyAppliance.provideEnergy(12000, (actual) -> {});
+        energyAppliance.provideEnergy(120000, (actual) -> {});
     }
 }

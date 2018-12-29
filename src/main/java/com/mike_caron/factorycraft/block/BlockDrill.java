@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.client.gui.GuiConst;
 import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
 import com.mike_caron.mikesmodslib.block.MachineBlockBase;
 import com.mike_caron.mikesmodslib.client.AnimationAdapter;
@@ -168,10 +169,16 @@ public class BlockDrill
     {
         if(worldIn.isRemote)
         {
-            TileEntityDrill te = (TileEntityDrill)worldIn.getTileEntity(pos);
-            te.loadAsm();
-            return true;
+            return false;
         }
+
+        TileEntityDrill te = (TileEntityDrill) worldIn.getTileEntity(pos);
+
+        if(te == null)
+            return false;
+
+        playerIn.openGui(FactoryCraft.instance, GuiConst.GUI_DRILL, worldIn, pos.getX(), pos.getY(), pos.getZ());
+
 
         return true;
     }

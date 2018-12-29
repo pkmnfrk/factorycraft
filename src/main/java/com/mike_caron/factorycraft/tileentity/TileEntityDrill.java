@@ -45,6 +45,8 @@ public class TileEntityDrill
     private IAnimationStateMachine asm = null;
     private final TimeValues.VariableValue animProgress = new TimeValues.VariableValue(0f);
 
+    private ItemStack miningTarget = ItemStack.EMPTY;
+
     public TileEntityDrill()
     {
         super();
@@ -182,6 +184,7 @@ public class TileEntityDrill
 
         if(energy > 0)
         {
+            miningTarget = ItemStack.EMPTY;
 
             IOreDeposit oreDeposit = getIOreDeposit();
             if (oreDeposit != null)
@@ -194,6 +197,7 @@ public class TileEntityDrill
                     IItemHandler outputInventory = getOuptutInventory();
 
                     ItemStack ore = deposit.getOreKind().ore;
+                    miningTarget = ore;
 
                     if((outputInventory == null && outputConveyor == null) || (outputConveyor != null && tryInsert(ore, outputConveyor, true) != ore) || (outputInventory != null && tryInsert(ore, outputInventory, true) != ore))
                     {
@@ -398,6 +402,18 @@ public class TileEntityDrill
         {
             FactoryCraft.logger.info("Got animation event {} at {}", event.event(), time);
         }
+    }
+
+    public float getProgress()
+    {
+        if(maxProgress == 0)
+            return 0;
+        return ((float)progress) / maxProgress;
+    }
+
+    public ItemStack getCurrentMiningTarget()
+    {
+        return miningTarget;
     }
 
 }
