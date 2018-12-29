@@ -204,23 +204,7 @@ public class TileEntityGrabber
                 case RETURNING:
                     progress += 1;
 
-                    if (type == TYPE_BURNER && !held.isEmpty() && TileEntityFurnace
-                            .isItemFuel(held) && (progress > maxProgress / 2 && progress < maxProgress / 2 + 2))
-                    {
-                        ItemStack fuel = ((SolidEnergyAppliance)energyAppliance).getInventory().getStackInSlot(0);
-                        ItemStack newFuel;
-                        if (fuel.getCount() < 5)
-                        {
-                            newFuel = ((SolidEnergyAppliance)energyAppliance).getInventory().insertItem(0, held, true);
-
-                            if (newFuel != held)
-                            {
-                                held = ((SolidEnergyAppliance)energyAppliance).getInventory().insertItem(0, held, false);
-                                state = State.GRABBING;
-                                progress = maxProgress - progress;
-                            }
-                        }
-                    }
+                    tryEatFuel();
 
                     if (progress >= maxProgress)
                     {
@@ -390,6 +374,11 @@ public class TileEntityGrabber
                         }
                     }
 
+                    if(!held.isEmpty())
+                    {
+                        tryEatFuel();
+                    }
+
                     if (held.isEmpty())
                     {
                         state = State.GRABBING;
@@ -409,6 +398,27 @@ public class TileEntityGrabber
         //{
         //    FactoryCraft.logger.info("Transition from {} to {} @ {}", startState, state, progress);
         //}
+    }
+
+    private void tryEatFuel()
+    {
+        if (type == TYPE_BURNER && !held.isEmpty() && TileEntityFurnace
+                .isItemFuel(held) && (progress >= maxProgress / 2 /*&& progress < maxProgress / 2 + 2*/))
+        {
+            ItemStack fuel = ((SolidEnergyAppliance)energyAppliance).getInventory().getStackInSlot(0);
+            ItemStack newFuel;
+            if (fuel.getCount() < 5)
+            {
+                newFuel = ((SolidEnergyAppliance)energyAppliance).getInventory().insertItem(0, held, true);
+
+                if (newFuel != held)
+                {
+                    held = ((SolidEnergyAppliance)energyAppliance).getInventory().insertItem(0, held, false);
+                    state = State.GRABBING;
+                    progress = maxProgress - progress;
+                }
+            }
+        }
     }
 
     private int getEnergyUsage(State state)
@@ -668,6 +678,10 @@ public class TileEntityGrabber
         }
     }
 
+    public EnergyAppliance getEnergyAppliance()
+    {
+        return energyAppliance;
+    }
 
     public enum State
     {

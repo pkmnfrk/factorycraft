@@ -16,6 +16,8 @@ public abstract class EnergyAppliance
 {
     protected TileEntity host;
 
+    protected float energyPercent = 1f;
+
     public EnergyAppliance(TileEntity host)
     {
         this.host = host;
@@ -67,5 +69,10 @@ public abstract class EnergyAppliance
     public NonNullList<ItemStack> getLimitedItems()
     {
         return NonNullList.create();
+    }
+
+    public float getEnergyPercent()
+    {
+        return energyPercent;
     }
 }

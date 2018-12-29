@@ -64,4 +64,9 @@ public abstract class TypedTileEntity
     {
         return super.serializeNBT();
     }
+
+    public int getType()
+    {
+        return type;
+    }
 }

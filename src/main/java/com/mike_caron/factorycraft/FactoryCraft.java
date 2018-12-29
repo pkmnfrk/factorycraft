@@ -8,6 +8,7 @@ import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import com.mike_caron.factorycraft.capability.*;
 import com.mike_caron.factorycraft.energy.EnergyManager;
+import com.mike_caron.factorycraft.proxy.GuiProxy;
 import com.mike_caron.factorycraft.proxy.IModProxy;
 import com.mike_caron.factorycraft.util.ClientUtil;
 import com.mike_caron.factorycraft.world.OreKind;
@@ -28,6 +29,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,10 +93,13 @@ public class FactoryCraft
     {
         proxy.init(event);
 
+        NetworkRegistry.INSTANCE.registerGuiHandler(FactoryCraft.instance, new GuiProxy());
+
         CapabilityManager.INSTANCE.register(IOreDeposit.class, new OreDepositCapabilityStorage(), OreDepositDefaultImpl::new);
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
         CapabilityManager.INSTANCE.register(IEnergyManager.class, new CapabilityEnergyManagerStorage(), () -> null);
         CapabilityManager.INSTANCE.register(IEnergyConnector.class, new NullStorage<>(), () -> null);
+
         MainCompatHandler.registerAllInit();
     }
 

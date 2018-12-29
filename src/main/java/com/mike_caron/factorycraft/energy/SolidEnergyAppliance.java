@@ -19,6 +19,7 @@ public class SolidEnergyAppliance
     private final ItemStackHandler fuel = new FuelItemStackHandler(1);
     private int joulesBanked;
     private float efficiency = 1f;
+    private int joulesHigh = 0;
 
     public SolidEnergyAppliance(TileEntity host, int freeEnergy)
     {
@@ -73,6 +74,11 @@ public class SolidEnergyAppliance
             }
         }
 
+        if(joulesBanked > joulesHigh)
+            joulesHigh = joulesBanked;
+
+        energyPercent = ((float)joulesBanked) / joulesHigh;
+
         amount = Math.min(amount, joulesBanked);
 
         joulesBanked -= amount;
@@ -118,6 +124,7 @@ public class SolidEnergyAppliance
         NBTTagCompound ret = super.serializeNBT();
 
         ret.setInteger("joulesBanked", joulesBanked);
+        ret.setInteger("joulesHigh", joulesHigh);
         ret.setFloat("efficiency", efficiency);
         ret.setTag("inventory", fuel.serializeNBT());
 
@@ -128,11 +135,10 @@ public class SolidEnergyAppliance
     public void deserializeNBT(NBTTagCompound compound)
     {
         joulesBanked = compound.getInteger("joulesBanked");
+        joulesHigh = compound.getInteger("joulesHigh");
         efficiency = compound.getFloat("efficiency");
         fuel.deserializeNBT(compound.getCompoundTag("inventory"));
     }
-
-
 
     class FuelItemStackHandler
         extends ItemStackHandler

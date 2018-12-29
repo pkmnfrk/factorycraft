@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.client.gui.GuiConst;
 import com.mike_caron.factorycraft.client.rendering.GrabberRenderer;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import net.minecraft.block.material.Material;
@@ -68,6 +69,18 @@ public class BlockGrabber
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
+        if(worldIn.isRemote) return false;
+
+        TileEntityGrabber te = (TileEntityGrabber)worldIn.getTileEntity(pos);
+
+        if(te == null)
+            return false;
+
+        if(te.getType() != 0)
+            return false;
+
+        playerIn.openGui(FactoryCraft.instance, GuiConst.GUI_GRABBER, worldIn, pos.getX(), pos.getY(), pos.getZ());
+
         return true;
     }
 
