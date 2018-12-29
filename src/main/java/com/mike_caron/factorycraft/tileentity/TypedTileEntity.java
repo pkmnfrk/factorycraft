@@ -1,12 +1,11 @@
 package com.mike_caron.factorycraft.tileentity;
 
-import com.mike_caron.mikesmodslib.block.TileEntityBase;
 import net.minecraft.nbt.NBTTagCompound;
 
 import javax.annotation.Nonnull;
 
 public abstract class TypedTileEntity
-    extends TileEntityBase
+    extends DroppingTileEntity
 {
     protected int type = -1;
 

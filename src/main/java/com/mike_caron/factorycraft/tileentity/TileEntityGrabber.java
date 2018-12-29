@@ -4,7 +4,6 @@ import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
-import com.mike_caron.factorycraft.energy.EnergyAppliance;
 import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
@@ -20,18 +19,16 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.animation.Event;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
 public class TileEntityGrabber
-    extends TypedTileEntity
-    implements ITickable, ILimitedInputItems
+    extends EnergyTileEntity
+    implements ITickable
 {
     private static final AxisAlignedBB renderingBoundingBox = new AxisAlignedBB(-1, 0, -1, 2, 2, 2);
 
@@ -60,8 +57,6 @@ public class TileEntityGrabber
         super(type);
     }
 
-    private EnergyAppliance energyAppliance;
-
     @Override
     protected void onKnowingType()
     {
@@ -75,28 +70,6 @@ public class TileEntityGrabber
         {
             energyAppliance = new ElectricalEnergyAppliance(this);
         }
-    }
-
-    @Override
-    public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
-    {
-        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
-        {
-            return true;
-        }
-
-        return super.hasCapability(capability, facing);
-    }
-
-    @Nullable
-    @Override
-    public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
-    {
-        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
-        {
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(energyAppliance.getInventory());
-        }
-        return super.getCapability(capability, facing);
     }
 
     @Override
@@ -115,7 +88,6 @@ public class TileEntityGrabber
         {
             held = new ItemStack(compound.getCompoundTag("held"));
         }
-        energyAppliance.deserializeNBT(compound.getCompoundTag("energy"));
     }
 
     @Override
@@ -132,8 +104,6 @@ public class TileEntityGrabber
             ret.setTag("held", held.serializeNBT());
         }
         ret.setInteger("state", state.ordinal());
-        ret.setTag("energy", energyAppliance.serializeNBT());
-
         return ret;
     }
 
@@ -645,12 +615,6 @@ public class TileEntityGrabber
         }
     }
 
-    @Override
-    public NonNullList<ItemStack> getLimitedItems()
-    {
-        return energyAppliance.getLimitedItems();
-    }
-
     public ItemStack getHeld()
     {
         return held;
@@ -661,26 +625,15 @@ public class TileEntityGrabber
         return state;
     }
 
+    @Override
     public void addItemsToDrop(NonNullList<ItemStack> items)
     {
-        if(energyAppliance instanceof SolidEnergyAppliance)
-        for(int i = 0; i < ((SolidEnergyAppliance)this.energyAppliance).getInventory().getSlots(); i++)
-        {
-            if(!((SolidEnergyAppliance)this.energyAppliance).getInventory().getStackInSlot(i).isEmpty())
-            {
-                items.add(((SolidEnergyAppliance)this.energyAppliance).getInventory().getStackInSlot(i));
-            }
-        }
+        super.addItemsToDrop(items);
 
         if(!held.isEmpty())
         {
             items.add(held);
         }
-    }
-
-    public EnergyAppliance getEnergyAppliance()
-    {
-        return energyAppliance;
     }
 
     public enum State
@@ -691,33 +644,4 @@ public class TileEntityGrabber
         WAITING_TO_INSERT  // -> GRABBIGN
     }
 
-    class CustomItemStackHandler
-        extends ItemStackHandler
-    {
-        public CustomItemStackHandler()
-        {
-            super(type == TYPE_BURNER ? 1 : 0);
-        }
-
-        @Override
-        protected void onContentsChanged(int slot)
-        {
-            super.onContentsChanged(slot);
-
-            markDirty();
-        }
-
-        @Override
-        public boolean isItemValid(int slot, @Nonnull ItemStack stack)
-        {
-            if(!super.isItemValid(slot, stack)) return false;
-
-            if(slot == 0) //fuel
-            {
-                return TileEntityFurnace.isItemFuel(stack);
-            }
-
-            return false;
-        }
-    }
 }

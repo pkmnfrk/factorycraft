@@ -59,6 +59,7 @@ public class SolidEnergyAppliance
                 {
                     f.shrink(1);
                     joulesBanked += value;
+                    joulesHigh = value;
 
                     host.markDirty();
 
@@ -74,14 +75,14 @@ public class SolidEnergyAppliance
             }
         }
 
-        if(joulesBanked > joulesHigh)
+        if(joulesHigh == 0)
             joulesHigh = joulesBanked;
-
-        energyPercent = ((float)joulesBanked) / joulesHigh;
 
         amount = Math.min(amount, joulesBanked);
 
         joulesBanked -= amount;
+
+        energyPercent = ((float)joulesBanked) / joulesHigh;
 
         callback.accept(amount);
     }
