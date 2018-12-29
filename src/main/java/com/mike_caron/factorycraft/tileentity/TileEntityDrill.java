@@ -8,7 +8,6 @@ import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityOreDeposit;
 import com.mike_caron.factorycraft.block.BlockDrill;
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
-import com.mike_caron.factorycraft.energy.EnergyAppliance;
 import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
 import com.mike_caron.factorycraft.world.OreDeposit;
 import com.mike_caron.mikesmodslib.block.IAnimationEventHandler;
@@ -18,7 +17,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -37,8 +35,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TileEntityDrill
-    extends TypedTileEntity
-    implements ITickable, IAnimationEventHandler, ILimitedInputItems
+    extends EnergyTileEntity
+    implements ITickable, IAnimationEventHandler
 {
     private int progress = 0;
     private int maxProgress = 0;
@@ -46,8 +44,6 @@ public class TileEntityDrill
 
     private IAnimationStateMachine asm = null;
     private final TimeValues.VariableValue animProgress = new TimeValues.VariableValue(0f);
-
-    private EnergyAppliance energy;
 
     public TileEntityDrill()
     {
@@ -61,11 +57,11 @@ public class TileEntityDrill
 
         if(this.type == 0)
         {
-            this.energy = new SolidEnergyAppliance(this);
+            this.energyAppliance = new SolidEnergyAppliance(this);
         }
         else
         {
-            this.energy = new ElectricalEnergyAppliance(this);
+            this.energyAppliance = new ElectricalEnergyAppliance(this);
         }
     }
 
@@ -99,8 +95,6 @@ public class TileEntityDrill
         if(capability == CapabilityAnimation.ANIMATION_CAPABILITY)
             return true;
 
-        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
-            return true;
         return super.hasCapability(capability, facing);
     }
 
@@ -112,8 +106,6 @@ public class TileEntityDrill
         {
             return CapabilityAnimation.ANIMATION_CAPABILITY.cast(asm);
         }
-        else if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && facing != null)
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(energy.getInventory());
 
         return super.getCapability(capability, facing);
     }
@@ -149,8 +141,6 @@ public class TileEntityDrill
         {
             animProgress.setValue(((float)progress) / maxProgress);
         }
-
-        energy.deserializeNBT(compound.getCompoundTag("energy"));
     }
 
     @Override
@@ -162,7 +152,6 @@ public class TileEntityDrill
         ret.setInteger("progress", progress);
         ret.setInteger("maxProgress", maxProgress);
         ret.setInteger("lastMaxProgress", lastMaxProgress);
-        ret.setTag("energy", energy.serializeNBT());
         return ret;
     }
 
@@ -181,7 +170,7 @@ public class TileEntityDrill
             return;
         }
 
-        energy.requestEnergy(getEnergyUsage(), this::update);
+        energyAppliance.requestEnergy(getEnergyUsage(), this::update);
     }
 
     public void update(int energy)
@@ -408,26 +397,6 @@ public class TileEntityDrill
         for(Event event : pastEvents)
         {
             FactoryCraft.logger.info("Got animation event {} at {}", event.event(), time);
-        }
-    }
-
-    @Override
-    public NonNullList<ItemStack> getLimitedItems()
-    {
-        return energy.getLimitedItems();
-    }
-
-    public void addItemsToDrop(NonNullList<ItemStack> items)
-    {
-        if(energy.getInventory() != null)
-        {
-            for (int i = 0; i < energy.getInventory().getSlots(); i++)
-            {
-                if (!energy.getInventory().getStackInSlot(i).isEmpty())
-                {
-                    items.add(energy.getInventory().getStackInSlot(i));
-                }
-            }
         }
     }
 

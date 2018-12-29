@@ -80,8 +80,11 @@ public class TileEntityConveyor
 
     }
 
+    @Override
     public void addItemsToDrop(NonNullList<ItemStack> items)
     {
+        super.addItemsToDrop(items);
+
         for(int i = 0; i < numTracks(); i++)
         {
             items.addAll(tracks.get(0).items.stream().map(it -> it.second).collect(Collectors.toList()));
