@@ -35,12 +35,19 @@ public class ItemFurnaceBlock
             return false;
         }
 
-        //also need to check the block to the left.
+        //also need to check the block to the right.
         EnumFacing newFacing = player.getHorizontalFacing().rotateY();
         pos = pos.offset(newFacing);
         if(!worldIn.mayPlace(this.block, pos, false, side, null))
         {
-            return false;
+            //maybe to the left???
+            newFacing = newFacing.getOpposite();
+            pos = pos.offset(newFacing, 2);
+
+            if(!worldIn.mayPlace(this.block, pos, false, side, null))
+            {
+                return false;
+            }
         }
 
         return true;
