@@ -1,5 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
+import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.client.gui.GuiConst;
 import com.mike_caron.factorycraft.tileentity.TileEntityFurnace;
 import com.mike_caron.factorycraft.tileentity.TileEntityRedirect;
 import net.minecraft.block.material.Material;
@@ -7,11 +9,15 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -47,7 +53,7 @@ public class BlockFurnace
             case 0:
                 return new TileEntityFurnace(type);
             case 1:
-                return new TileEntityRedirect(state.getValue(FACING).rotateYCCW());
+                return new TileEntityRedirect(state.getValue(FACING).rotateY());
         }
         return null;
     }
@@ -163,5 +169,46 @@ public class BlockFurnace
                 return pos.offset(facing.rotateY());
         }
         return pos;
+    }
+
+    private TileEntityFurnace getTileEntity(IBlockAccess world, BlockPos pos)
+    {
+        TileEntity ret = world.getTileEntity(pos);
+
+        while(ret instanceof TileEntityRedirect)
+        {
+            ret = ((TileEntityRedirect) ret).getRealTileEntity();
+        }
+
+        return (TileEntityFurnace)ret;
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        if(worldIn.isRemote)
+        {
+            return false;
+        }
+
+        TileEntityFurnace te = getTileEntity(worldIn, pos);
+
+        if(te == null)
+            return false;
+
+        playerIn.openGui(FactoryCraft.instance, GuiConst.GUI_FURNACE, worldIn, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
+
+
+        return true;
+    }
+
+    @Override
+    protected void getExtraDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state)
+    {
+        TileEntity te = world.getTileEntity(pos);
+        if(te instanceof TileEntityFurnace)
+        {
+            ((TileEntityFurnace) te).addItemsToDrop(drops);
+        }
     }
 }

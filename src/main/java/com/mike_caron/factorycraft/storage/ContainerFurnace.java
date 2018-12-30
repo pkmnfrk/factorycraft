@@ -21,6 +21,7 @@ public class ContainerFurnace
     public ContainerFurnace(IInventory player, TileEntityFurnace te)
     {
         super(player, te);
+        ownSlotUpdates = false;
 
         init();
     }

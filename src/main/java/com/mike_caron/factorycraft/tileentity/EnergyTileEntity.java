@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 
 public class EnergyTileEntity
     extends TypedTileEntity
-    implements ILimitedInputItems
 {
     protected EnergyAppliance energyAppliance;
 
@@ -75,19 +74,6 @@ public class EnergyTileEntity
         }
 
         return compound;
-    }
-
-    @Override
-    public NonNullList<ItemStack> getLimitedItems()
-    {
-        NonNullList<ItemStack> ret = NonNullList.create();
-
-        if(energyAppliance != null)
-        {
-            ret.addAll(energyAppliance.getLimitedItems());
-        }
-
-        return ret;
     }
 
     @Override

@@ -4,4 +4,5 @@ public class GuiConst
 {
     public static final int GUI_GRABBER = 1;
     public static final int GUI_DRILL = 2;
+    public static final int GUI_FURNACE = 3;
 }

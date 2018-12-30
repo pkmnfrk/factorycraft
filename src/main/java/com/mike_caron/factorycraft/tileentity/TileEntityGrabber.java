@@ -5,10 +5,11 @@ import com.mike_caron.factorycraft.api.IConveyorBelt;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
 import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
+import com.mike_caron.factorycraft.storage.EnumSlotKind;
+import com.mike_caron.factorycraft.storage.ISlotKind;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -510,19 +511,27 @@ public class TileEntityGrabber
 
                 if(ret != itemStack)
                 {
-                    if(outputTileEntity instanceof ILimitedInputItems)
+                    if(outputHandler instanceof ISlotKind)
                     {
                         ItemStack existingStack = outputHandler.getStackInSlot(i);
+                        boolean isFuel = TileEntityFurnace.isItemFuel(itemStack);
 
-                        for(ItemStack limited : ((ILimitedInputItems) outputTileEntity).getLimitedItems())
+                        EnumSlotKind slotKind = ((ISlotKind) outputHandler).getSlotKind(i);
+                        int desiredCount = ((ISlotKind) outputHandler).desiredMaximum(i);
+
+                        if(existingStack.getCount() >= desiredCount)
+                            continue;
+
+                        switch (slotKind)
                         {
-                            if(
-                                (limited.isItemEqual(existingStack) || limited.getItem() == Items.COAL)
-                                && existingStack.getCount() >= limited.getCount()
-                            )
-                            {
-                                return false;
-                            }
+                            case OUTPUT:
+                            case NONE:
+                                continue;
+                            case FUEL:
+                                if(!isFuel)
+                                    continue;
+                            case INPUT:
+                                return true;
                         }
                     }
                     return true;

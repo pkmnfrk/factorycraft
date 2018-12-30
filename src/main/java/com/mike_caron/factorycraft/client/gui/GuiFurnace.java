@@ -1,22 +1,19 @@
 package com.mike_caron.factorycraft.client.gui;
 
-import com.mike_caron.factorycraft.storage.ContainerDrill;
-import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
-import com.mike_caron.mikesmodslib.gui.GuiImageItemStack;
+import com.mike_caron.factorycraft.storage.ContainerFurnace;
+import com.mike_caron.factorycraft.tileentity.TileEntityFurnace;
 import com.mike_caron.mikesmodslib.gui.GuiProgressBar;
 import com.mike_caron.mikesmodslib.gui.GuiUtil;
-import net.minecraft.item.ItemStack;
 
 import java.awt.Color;
 
 public class GuiFurnace
-    extends GuiTEContainerBase<ContainerDrill, TileEntityDrill>
+    extends GuiTEContainerBase<ContainerFurnace, TileEntityFurnace>
 {
-    GuiProgressBar fuelSupply = new GuiProgressBar(30, 28, 116, 4);
-    GuiProgressBar drillProgress = new GuiProgressBar(10, 28, 136, 4);
-    GuiImageItemStack miningTarget = new GuiImageItemStack(149, 21, ItemStack.EMPTY);
+    GuiProgressBar fuelSupply    = new GuiProgressBar(30, 46, 116, 4);
+    GuiProgressBar drillProgress = new GuiProgressBar(30, 28, 116, 4);
 
-    public GuiFurnace(ContainerDrill inventorySlotsIn, TileEntityDrill te)
+    public GuiFurnace(ContainerFurnace inventorySlotsIn, TileEntityFurnace te)
     {
         super(inventorySlotsIn, te, getWidth(te.getType()), getHeight(te.getType()));
 
@@ -28,23 +25,17 @@ public class GuiFurnace
     {
         super.addControls();
 
-        if(tileEntity.getType() == 0)
+        if(tileEntity.getType() != 2)
         {
             fuelSupply.setBackColor(Color.BLACK);
             fuelSupply.setForeColor(Color.RED);
             addControl(fuelSupply);
-
-            drillProgress.setY(46);
-            miningTarget.setY(37);
-            drillProgress.setX(30);
-            drillProgress.setWidth(116);
         }
 
         drillProgress.setBackColor(Color.BLACK);
         drillProgress.setForeColor(Color.GREEN);
 
         addControl(drillProgress);
-        addControl(miningTarget);
     }
 
     @Override
@@ -52,13 +43,12 @@ public class GuiFurnace
     {
         super.onContainerRefresh();
 
-        if(tileEntity.getType() == 0)
+        if(tileEntity.getType() != 2)
         {
             fuelSupply.setProgress(container.fuelPercent);
         }
 
         drillProgress.setProgress(container.progressPercent);
-        miningTarget.setItemStack(container.miningTarget);
     }
 
     @Override
@@ -66,16 +56,13 @@ public class GuiFurnace
     {
         super.drawGuiContainerBackgroundLayer(v, i, i1);
 
-        if(tileEntity.getType() == 0)
-        {
-            GuiUtil.drawTexturePart(guiLeft + 10, guiTop + 20, 18, 18, 0, 180, 256, 256);
-            GuiUtil.drawTexturePart(guiLeft + 148,guiTop + 36, 18, 18, 0, 180, 256, 256);
-        }
-        else
-        {
-            GuiUtil.drawTexturePart(guiLeft + 148,guiTop + 20, 18, 18, 0, 180, 256, 256);
-        }
+        GuiUtil.drawTexturePart(guiLeft + 10, guiTop + 20, 18, 18, 0, 180, 256, 256);
+        GuiUtil.drawTexturePart(guiLeft + 149, guiTop + 20, 18, 18, 0, 180, 256, 256);
 
+        if(tileEntity.getType() != 2)
+        {
+            GuiUtil.drawTexturePart(guiLeft + 10, guiTop + 38, 18, 18, 0, 180, 256, 256);
+        }
     }
 
     public static int getWidth(int type)

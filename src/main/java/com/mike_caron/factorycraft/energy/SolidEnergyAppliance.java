@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.energy;
 
-import net.minecraft.init.Items;
+import com.mike_caron.factorycraft.storage.EnumSlotKind;
+import com.mike_caron.factorycraft.storage.ISlotKind;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -14,8 +15,6 @@ import java.util.function.IntConsumer;
 public class SolidEnergyAppliance
     extends EnergyAppliance
 {
-    private static NonNullList<ItemStack> limitedItems;
-
     private final ItemStackHandler fuel = new FuelItemStackHandler(1);
     private int joulesBanked;
     private float efficiency = 1f;
@@ -99,19 +98,6 @@ public class SolidEnergyAppliance
         return fuel;
     }
 
-    @Nonnull
-    @Override
-    public NonNullList<ItemStack> getLimitedItems()
-    {
-        if(limitedItems == null)
-        {
-            limitedItems = NonNullList.create();
-            limitedItems.add(new ItemStack(Items.COAL, 5));
-
-        }
-        return limitedItems;
-    }
-
     private int fuelValue(ItemStack itemStack)
     {
         // Coal burns for 1600 ticks in minecraft, and provides 8MJ in Factorio
@@ -143,6 +129,7 @@ public class SolidEnergyAppliance
 
     class FuelItemStackHandler
         extends ItemStackHandler
+        implements ISlotKind
     {
 
         public FuelItemStackHandler()
@@ -166,6 +153,22 @@ public class SolidEnergyAppliance
             super.onContentsChanged(slot);
 
             host.markDirty();
+        }
+
+        @Nonnull
+        @Override
+        public EnumSlotKind getSlotKind(int slot)
+        {
+            if(slot == 0)
+                return EnumSlotKind.FUEL;
+
+            return EnumSlotKind.NONE;
+        }
+
+        @Override
+        public int desiredMaximum(int slot)
+        {
+            return 5;
         }
     }
 }

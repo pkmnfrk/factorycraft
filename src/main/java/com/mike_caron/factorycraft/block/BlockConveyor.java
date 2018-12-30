@@ -225,6 +225,9 @@ public class BlockConveyor
             if (!(ret.getBlock() instanceof BlockConveyor))
                 continue;
 
+            if(ret.getValue(TURN) == EnumTurn.Down && other.getY() == pos.getY())
+                return false;
+
             other = other.add(0, pos.getY() - other.getY(), 0);
 
             return other.offset(ret.getValue(FACING)).equals(pos);
@@ -331,12 +334,13 @@ public class BlockConveyor
     @Deprecated
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
-        TileEntityConveyor te = (TileEntityConveyor)worldIn.getTileEntity(pos);
-        if(te != null)
+        TileEntity teP = worldIn.getTileEntity(pos);
+        if(!(teP instanceof TileEntityConveyor))
         {
-            state = state.withProperty(TURN, te.getTurn());
+            return state;
         }
-        return state;
+
+        return state.withProperty(TURN, ((TileEntityConveyor) teP).getTurn());
     }
 
     public static IBlockState calculateCorrectBlockState(IBlockAccess worldIn, BlockPos pos, IBlockState state)

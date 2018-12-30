@@ -2,11 +2,14 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
 import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
+import com.mike_caron.factorycraft.storage.EnumSlotKind;
+import com.mike_caron.factorycraft.storage.ISlotKind;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -136,8 +139,32 @@ public class TileEntityFurnace
         return compound;
     }
 
+    @Override
+    public void addItemsToDrop(NonNullList<ItemStack> items)
+    {
+        super.addItemsToDrop(items);
+
+        for(int i = 0; i < 2; i++)
+        {
+            if(!inventory.getStackInSlot(i).isEmpty())
+            {
+                items.add(inventory.getStackInSlot(i));
+            }
+        }
+
+    }
+
+    private int getLimitCount(ItemStack item)
+    {
+        if(item.isEmpty()) return 64;
+
+        //TODO: Handle recipes
+        return 7;
+    }
+
     class MyItemStackHandler
         extends ItemStackHandler
+        implements ISlotKind
     {
 
         public MyItemStackHandler()
@@ -165,9 +192,6 @@ public class TileEntityFurnace
                     return energyAppliance.getInventory().extractItem(slot - 2, amount, simulate);
                 }
             }
-
-            if(slot == 0)
-                return ItemStack.EMPTY;
 
             return super.extractItem(slot, amount, simulate);
         }
@@ -200,6 +224,7 @@ public class TileEntityFurnace
                 if(type != 2)
                 {
                     ((ItemStackHandler)energyAppliance.getInventory()).setStackInSlot(slot - 2, stack);
+                    return;
                 }
             }
 
@@ -288,6 +313,35 @@ public class TileEntityFurnace
         protected void onContentsChanged(int slot)
         {
             markDirty();
+        }
+
+        @Nonnull
+        @Override
+        public EnumSlotKind getSlotKind(int slot)
+        {
+            if(type != 2 && slot == 2 && getEnergyAppliance().getInventory() instanceof ISlotKind)
+            {
+                return ((ISlotKind) getEnergyAppliance().getInventory()).getSlotKind(slot - 2);
+            }
+            if(slot == 0)
+            {
+                return EnumSlotKind.INPUT;
+            }
+            else if(slot == 1)
+            {
+                return EnumSlotKind.OUTPUT;
+            }
+            return EnumSlotKind.NONE;
+        }
+
+        @Override
+        public int desiredMaximum(int slot)
+        {
+            if(type != 2 && slot == 2 && getEnergyAppliance().getInventory() instanceof ISlotKind)
+            {
+                return ((ISlotKind) getEnergyAppliance().getInventory()).desiredMaximum(slot - 2);
+            }
+            return getLimitCount(getStackInSlot(slot));
         }
     }
 }
