@@ -46,6 +46,19 @@ public class TileEntityRedirect
         return world.getTileEntity(other);
     }
 
+    public BlockPos getRealTileEntityPos()
+    {
+        if(other == null)
+        {
+            if(facing != null)
+            {
+                other = pos.offset(facing);
+            }
+        }
+
+        return other;
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
     {

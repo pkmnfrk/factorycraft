@@ -6,6 +6,7 @@ import com.mike_caron.factorycraft.tileentity.TileEntityFurnace;
 import com.mike_caron.factorycraft.tileentity.TileEntityRedirect;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,15 +15,19 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 
 public class BlockFurnace
     extends WeirdModelBlockBase
@@ -30,6 +35,7 @@ public class BlockFurnace
     private int type;
 
     private static final PropertyInteger PART = PropertyInteger.create("part", 0, 1);
+    private static final PropertyBool ACTIVE = PropertyBool.create("active");
 
     public BlockFurnace(String name, int type)
     {
@@ -62,7 +68,8 @@ public class BlockFurnace
     protected IBlockState addStateProperties(IBlockState blockState)
     {
         return super.addStateProperties(blockState)
-            .withProperty(PART, 0);
+            .withProperty(PART, 0)
+            .withProperty(ACTIVE, false);
     }
 
     @Override
@@ -71,6 +78,7 @@ public class BlockFurnace
         super.addAdditionalPropeties(properties);
 
         properties.add(PART);
+        properties.add(ACTIVE);
     }
 
     @Override
@@ -173,11 +181,28 @@ public class BlockFurnace
 
     private TileEntityFurnace getTileEntity(IBlockAccess world, BlockPos pos)
     {
-        TileEntity ret = world.getTileEntity(pos);
+        TileEntity ret;
+        if(world instanceof ChunkCache)
+        {
+            ret = ((ChunkCache)world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
+        }
+        else
+        {
+            ret = world.getTileEntity(pos);
+        }
 
         while(ret instanceof TileEntityRedirect)
         {
-            ret = ((TileEntityRedirect) ret).getRealTileEntity();
+            pos = ((TileEntityRedirect) ret).getRealTileEntityPos();
+
+            if(world instanceof ChunkCache)
+            {
+                ret = ((ChunkCache)world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
+            }
+            else
+            {
+                ret = world.getTileEntity(pos);
+            }
         }
 
         return (TileEntityFurnace)ret;
@@ -210,5 +235,42 @@ public class BlockFurnace
         {
             ((TileEntityFurnace) te).addItemsToDrop(drops);
         }
+    }
+
+    @Override
+    public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand)
+    {
+        if(type == 2)
+            return;
+
+        if(stateIn.getValue(PART) != 1)
+            return;
+
+        TileEntityFurnace te = getTileEntity(worldIn, pos);
+
+        if(!te.getIsActive())
+            return;
+
+        for(int i = 0; i < 2; i++)
+        {
+            double x = pos.getX() + 9/16f;
+            double y = pos.getY() + 25/16f;
+            double z = pos.getZ() + 9/16f;
+            double vx = (rand.nextFloat() - 0.5) * 0.1;
+            double vy = 0.1;
+            double vz = (rand.nextFloat() - 0.5) * 0.1;
+
+            worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, x, y, z, vx, vy, vz);
+        }
+    }
+
+    @Override
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
+    {
+        TileEntityFurnace te = getTileEntity(worldIn, pos);
+
+        state = state.withProperty(ACTIVE, te.getIsActive());
+
+        return state;
     }
 }

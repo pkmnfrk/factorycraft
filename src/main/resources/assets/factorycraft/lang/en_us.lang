@@ -15,3 +15,5 @@ tile.factorycraft:drill.name=Electric Mining Drill
 
 tile.factorycraft:grabber.name=Inserter
 tile.factorycraft:grabber_burner.name=Burner Inserter
+
+tile.factorycraft:furnace_stone.name=Stone Furnace

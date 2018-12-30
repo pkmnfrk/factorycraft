@@ -1,7 +1,6 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "factorycraft:drill2"
   },
   "variants": {
     "inventory": [{
@@ -19,6 +18,18 @@
       },
       "1": {
         "model": "factorycraft:furnace/stone_r"
+      }
+    },
+    "active": {
+      "true": {
+        "textures": {
+          "front": "factorycraft:block/furnace/stone3"
+        }
+      },
+      "false": {
+        "textures": {
+          "front": "factorycraft:block/furnace/stone2"
+        }
       }
     }
   }

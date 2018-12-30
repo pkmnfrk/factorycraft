@@ -2,10 +2,10 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.energy.ElectricalEnergyAppliance;
 import com.mike_caron.factorycraft.energy.SolidEnergyAppliance;
+import com.mike_caron.factorycraft.item.crafting.FurnaceRecipe;
 import com.mike_caron.factorycraft.storage.EnumSlotKind;
 import com.mike_caron.factorycraft.storage.ISlotKind;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -23,10 +23,8 @@ public class TileEntityFurnace
 {
     private final ItemStackHandler inventory = new MyItemStackHandler();
 
-    private int progress;
-    private int maxProgress;
-    private int lastMaxProgress;
-
+    private float progress;
+    private boolean isActive;
 
     public TileEntityFurnace()
     {
@@ -43,16 +41,102 @@ public class TileEntityFurnace
     {
         if(world.isRemote)
             return;
+
+        ItemStack input = inventory.getStackInSlot(0);
+        ItemStack output = inventory.getStackInSlot(1);
+
+        if(FurnaceRecipe.INSTANCE.hasRecipe(input))
+        {
+            int recipeInput = FurnaceRecipe.INSTANCE.getInputCount(input);
+            ItemStack recipeOutput = FurnaceRecipe.INSTANCE.getOutput(input);
+
+            if (input.getCount() >= recipeInput
+                && (
+                       output.isEmpty()
+                    || (
+                           output.isItemEqual(recipeOutput)
+                        && output.getCount() + recipeOutput.getCount() <= 64
+                    )
+                )
+            )
+            {
+                energyAppliance.requestEnergy(getActiveEnergyUsage(), this::updateActive);
+                return;
+            }
+
+        }
+
+        energyAppliance.requestEnergy(getIdleEnergyUsage(), this::updateIdle);
     }
 
-    private void update(int amount)
+    private void updateActive(int amount)
     {
+        int target = getActiveEnergyUsage();
+        ItemStack input = inventory.getStackInSlot(0);
+
+        float recipeTime = FurnaceRecipe.INSTANCE.getCraftingTime(input);
+        float speed = getSmeltSpeed();
+
+        float craftingTime = 1 / (20f * recipeTime / speed);
+
+        progress += amount * craftingTime / target;
+
+        markDirty();
+
+        if(!isActive && amount > 0)
+        {
+            isActive = true;
+            markAndNotify();
+        }
+        else if(isActive && amount == 0)
+        {
+            isActive = false;
+            markAndNotify();
+        }
+
+        if(progress >= 1)
+        {
+            ItemStack output = inventory.getStackInSlot(1);
+            ItemStack recipeOutput = FurnaceRecipe.INSTANCE.getOutput(input);
+            int inputCount = FurnaceRecipe.INSTANCE.getInputCount(input);
+
+            input.shrink(inputCount);
+            if(output.isEmpty())
+            {
+                output = recipeOutput.copy();
+                inventory.setStackInSlot(1, output);
+            }
+            else
+            {
+                output.grow(recipeOutput.getCount());
+            }
+
+            progress = 0;
+        }
+
 
     }
 
-    private int getEnergyUsage()
+    private void updateIdle(int amount)
     {
-        return 9000;
+        if(isActive)
+        {
+            isActive = false;
+            markAndNotify();
+        }
+    }
+
+    private int getActiveEnergyUsage()
+    {
+        return 9000 + getIdleEnergyUsage();
+    }
+
+    private int getIdleEnergyUsage()
+    {
+        if(type == 2)
+            return 300;
+
+        return 0;
     }
 
     private int getSmeltSpeed()
@@ -85,18 +169,17 @@ public class TileEntityFurnace
 
     public float getProgress()
     {
-        return 0.1f;
+        return progress;
     }
 
     public boolean getIsActive()
     {
-        return false;
+        return isActive;
     }
 
     public ItemStack getSmeltingResult(ItemStack itemStack)
     {
-        //TODO: replace with our own recipes
-        return FurnaceRecipes.instance().getSmeltingResult(itemStack);
+        return FurnaceRecipe.INSTANCE.getOutput(itemStack);
     }
 
     @Override
@@ -126,6 +209,17 @@ public class TileEntityFurnace
         super.readFromNBT(nbt);
 
         inventory.deserializeNBT(nbt.getCompoundTag("inventory"));
+        progress = nbt.getFloat("progress");
+        boolean oldIsActive = isActive;
+        isActive = nbt.getBoolean("active");
+
+        if(world != null && world.isRemote)
+        {
+            if(oldIsActive != isActive)
+            {
+                world.markBlockRangeForRenderUpdate(pos, pos);
+            }
+        }
     }
 
     @Nonnull
@@ -135,7 +229,8 @@ public class TileEntityFurnace
         compound = super.writeToNBT(compound);
 
         compound.setTag("inventory", inventory.serializeNBT());
-
+        compound.setFloat("progress", progress);
+        compound.setBoolean("active", isActive);
         return compound;
     }
 
@@ -158,8 +253,11 @@ public class TileEntityFurnace
     {
         if(item.isEmpty()) return 64;
 
-        //TODO: Handle recipes
-        return 7;
+        int cnt = FurnaceRecipe.INSTANCE.getInputCount(item);
+        if(cnt == 0)
+            return 64;
+
+        return cnt * 5;
     }
 
     class MyItemStackHandler
