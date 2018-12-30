@@ -2,11 +2,10 @@ package com.mike_caron.factorycraft.tileentity;
 
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IConveyorBelt;
-import com.mike_caron.factorycraft.block.BlockConveyor;
 import com.mike_caron.factorycraft.api.capabilities.CapabilityConveyor;
+import com.mike_caron.factorycraft.block.BlockConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
-import com.sun.javafx.geom.Vec3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -18,13 +17,14 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -212,16 +212,22 @@ public class TileEntityConveyor
         return cachedFacing;
     }
 
-    private BlockConveyor.EnumTurn getTurn(BlockPos pos)
+    private BlockConveyor.EnumTurn getTurnReal()
     {
-        return world.getBlockState(pos).getValue(BlockConveyor.TURN);
+        IBlockState state = world.getBlockState(pos);
+        return BlockConveyor.calculateCorrectBlockState(world, pos, state).getValue(BlockConveyor.TURN);
     }
 
-    private BlockConveyor.EnumTurn getTurn()
+    public void setTurn(BlockConveyor.EnumTurn turn)
+    {
+        cachedTurn = turn;
+    }
+
+    public BlockConveyor.EnumTurn getTurn()
     {
         if(cachedTurn == null)
         {
-            cachedTurn = getTurn(pos);
+            cachedTurn = getTurnReal();
         }
 
         return cachedTurn;
@@ -297,7 +303,9 @@ public class TileEntityConveyor
           ---- |0^1+-  -+0^1|
      */
 
-        if(turn == BlockConveyor.EnumTurn.Straight)
+        if(   turn == BlockConveyor.EnumTurn.Straight
+           || turn == BlockConveyor.EnumTurn.Up
+           || turn == BlockConveyor.EnumTurn.Down)
         {
             //phew
             tracks.get(0).setLength(1f);
@@ -357,10 +365,14 @@ public class TileEntityConveyor
         super.markAndNotify();
     }
 
-    public void notifyChange()
+    @Override
+    public void updateContainingBlockInfo()
     {
-        cachedTurn = null;
-        cachedFacing = null;
+        super.updateContainingBlockInfo();
+
+        IBlockState state = world.getBlockState(pos);
+        cachedTurn = state.getValue(BlockConveyor.TURN);
+        cachedFacing = state.getValue(BlockConveyor.FACING);
     }
 
     @Override
@@ -397,7 +409,7 @@ public class TileEntityConveyor
     {
         EnumFacing facing;
         BlockConveyor.EnumTurn turn;
-        private final Vec2f CENTER = new Vec2f(0.5f, 0.5f);
+        private final Vector3f CENTER = new Vector3f(0.5f, 0.125f, 0.5f);
 
         public ItemPosition(EnumFacing facing, BlockConveyor.EnumTurn turn)
         {
@@ -405,10 +417,11 @@ public class TileEntityConveyor
             this.turn = turn;
         }
 
-        public Vec3f getPosition(int track, float position)
+        public Vector4f getPosition(int track, float position)
         {
-            Vec2f northPoint;
+            Vector3f northPoint;
             float x, z;
+            float y = 2f / 16;
             float angle = 0;
 
             switch(turn)
@@ -418,7 +431,21 @@ public class TileEntityConveyor
                     x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
                     angle = facing.getOpposite().getHorizontalAngle();
-                    northPoint = new Vec2f(x, z);
+                    northPoint = new Vector3f(x, y, z);
+                    break;
+                case Up:
+                    x = (0.25f + 0.5f * (1 - track));
+                    z = (position / tracks.get(track).maxLength);
+                    y = 0.125f + 0.875f * (position / tracks.get(track).maxLength);
+                    angle = facing.getOpposite().getHorizontalAngle();
+                    northPoint = new Vector3f(x, y, z);
+                    break;
+                case Down:
+                    x = (0.25f + 0.5f * (1 - track));
+                    z = (position / tracks.get(track).maxLength);
+                    y = 0.125f + 0.875f * (1f - position / tracks.get(track).maxLength);
+                    angle = facing.getOpposite().getHorizontalAngle();
+                    northPoint = new Vector3f(x, y, z);
                     break;
                 case Left:
                 {
@@ -427,8 +454,9 @@ public class TileEntityConveyor
                     float radius = track == 0 ? 0.75f : 0.25f;
                     angle = -(float) MathHelper.clampedLerp(-90, 0, position / v);
 
-                    northPoint = new Vec2f(
+                    northPoint = new Vector3f(
                         radius * (float) Math.cos(Math.toRadians(- angle)),
+                        y,
                         radius * (float) Math.sin(Math.toRadians(- angle)) + 1
                     );
 
@@ -442,8 +470,9 @@ public class TileEntityConveyor
                     float radius = track == 0 ? 0.25f : 0.75f;
                     angle = (float) MathHelper.clampedLerp(0,  90, position / v);
 
-                    northPoint = new Vec2f(
+                    northPoint = new Vector3f(
                         radius * (float) Math.cos(Math.toRadians(angle - 90)),
+                        y,
                         radius * (float) Math.sin(Math.toRadians(angle - 90)) + 1
                     );
 
@@ -459,44 +488,59 @@ public class TileEntityConveyor
                 angle +=  180;
             }
 
-            northPoint = new Vec2f(northPoint.x, northPoint.y);
+            //northPoint = new Vector3f(northPoint.x, northPoint.y, northPoint.z);
 
             if(turn == BlockConveyor.EnumTurn.Right)
             {
-                northPoint = new Vec2f(1f - northPoint.x, northPoint.y);
+                northPoint = new Vector3f(1f - northPoint.x, northPoint.y, northPoint.z);
             }
 
-            Vec2f ret = rotate(CENTER, facing.getHorizontalAngle(), northPoint);
+            Vector3f ret = rotate(CENTER, facing.getHorizontalAngle(), northPoint);
 
-            return new Vec3f(ret.x, angle, ret.y);
+            return new Vector4f(ret.x, ret.y, ret.z, angle);
         }
 
-        public void visitAllPositions(BiConsumer<ItemStack, Vec3f> visitor)
+        public Vector3f getNormal()
+        {
+            //this is very silly, but I love it
+            switch(turn)
+            {
+                case Up:
+                    return new Vector3f(0, (float)Math.sqrt(2) / 2, (float)Math.sqrt(2) / -2);
+                case Down:
+                    return new Vector3f(0, (float)Math.sqrt(2) / 2, (float)Math.sqrt(2) / 2);
+                    default:
+                        return new Vector3f(0, 1f, 0);
+            }
+
+        }
+
+        public void visitAllPositions(BiConsumer<ItemStack, Vector4f> visitor)
         {
             for(int i = 0; i < tracks.size(); i++)
             {
                 for (Tuple2<Float, ItemStack> item : tracks.get(i).getItems())
                 {
-                    Vec3f p = getPosition(i, item.first);
+                    Vector4f p = getPosition(i, item.first);
                     visitor.accept(item.second, p);
                 }
             }
         }
 
-        public Vec2f rotate(Vec2f origin, float angle, Vec2f point)
+        public Vector3f rotate(Vector3f origin, float angle, Vector3f point)
         {
             float x = point.x - origin.x;
-            float y = point.y - origin.y;
+            float z = point.z - origin.z;
 
             angle = (float)Math.toRadians(angle);
 
             double s = Math.sin(angle);
             double c = Math.cos(angle);
 
-            float xNew = (float)(x * c - y * s);
-            float yNew = (float)(x * s + y * c);
+            float xNew = (float)(x * c - z * s);
+            float zNew = (float)(x * s + z * c);
 
-            return new Vec2f(xNew + origin.x, yNew + origin.y);
+            return new Vector3f(xNew + origin.x, point.y, zNew + origin.z);
         }
     }
 

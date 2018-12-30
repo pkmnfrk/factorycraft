@@ -30,6 +30,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BlockConveyor
     extends MachineBlockBase
@@ -91,11 +93,11 @@ public class BlockConveyor
         int ret = super.getMetaFromState(state);
 
         EnumTurn turn = state.getValue(TURN);
-        if(turn == EnumTurn.Left)
+        if(turn == EnumTurn.Up)
         {
             ret += 4;
         }
-        else if(turn == EnumTurn.Right)
+        else if(turn == EnumTurn.Down)
         {
             ret += 8;
         }
@@ -117,52 +119,118 @@ public class BlockConveyor
         }
         else if(meta == 4)
         {
-            ret = ret.withProperty(TURN, EnumTurn.Left);
+            ret = ret.withProperty(TURN, EnumTurn.Up);
         }
         else if(meta == 8)
         {
-            ret = ret.withProperty(TURN, EnumTurn.Right);
+            ret = ret.withProperty(TURN, EnumTurn.Down);
         }
 
         return ret;
     }
 
-    private BlockPos turn(BlockPos pos, EnumFacing facing, EnumTurn turn)
+    private static Stream<BlockPos> findSpacesBehindUs(BlockPos pos, EnumFacing facing, EnumTurn turn)
     {
+        BlockPos ret;
         switch(turn)
         {
             case Left:
-                return pos.offset(facing.rotateY());
+                return Stream.of(
+                    pos.offset(facing.rotateY()),
+                    pos.offset(facing.rotateY()).offset(EnumFacing.DOWN)
+                );
             case Right:
-                return pos.offset(facing.rotateYCCW());
+                return Stream.of(
+                    pos.offset(facing.rotateYCCW()),
+                    pos.offset(facing.rotateYCCW()).offset(EnumFacing.DOWN)
+                );
+            case Up:
+                return Stream.of(
+                    pos.offset(facing.getOpposite()),
+                    pos.offset(facing.getOpposite()).offset(EnumFacing.DOWN)
+                );
+            case Down:
+                return Stream.of(
+                    pos.offset(facing.getOpposite()),
+                    pos.offset(facing.getOpposite()).offset(EnumFacing.UP)
+                );
             case Straight:
-                return pos.offset(facing);
+                return Stream.of(
+                    pos.offset(facing.getOpposite()),
+                    pos.offset(facing.getOpposite()).offset(EnumFacing.DOWN)
+                );
         }
 
         throw new Error("Impossible");
     }
 
-    @Nullable
-    private EnumFacing getFacingOf(World worldIn, BlockPos pos, EnumFacing facing, EnumTurn turn)
+    private static boolean shouldWeFaceUp(IBlockAccess world, BlockPos pos, EnumFacing facing)
     {
-        IBlockState ret = worldIn.getBlockState(turn(pos, facing, turn));
+        //if there is a conveyor above and in front of us, but not directly in front of us,
+        //then yes.
+        BlockPos otherPos = pos.offset(facing);
+        IBlockState other = world.getBlockState(otherPos);
 
-        if(!(ret.getBlock() instanceof BlockConveyor))
-            return null;
+        if(other.getBlock() instanceof BlockConveyor)
+        {
+            return false;
+        }
 
-        return ret.getValue(FACING);
+        otherPos = otherPos.offset(EnumFacing.UP);
+        other = world.getBlockState(otherPos);
+
+        if(other.getBlock() instanceof BlockConveyor)
+        {
+            return true;
+        }
+
+        return false;
     }
 
-    private boolean isFacingMe(World worldIn, BlockPos pos, EnumFacing facing, EnumTurn turn)
+    private static boolean shouldWeFaceDown(IBlockAccess world, BlockPos pos, EnumFacing facing)
     {
-        BlockPos other = turn(pos, facing, turn);
+        //if there is a conveyor above and behind us, and facing us,
+        // but not directly behind us (or they're not facing us), then yes.
 
-        IBlockState ret = worldIn.getBlockState(other);
+        BlockPos otherPos = pos.offset(facing.getOpposite());
+        IBlockState other = world.getBlockState(otherPos);
 
-        if(!(ret.getBlock() instanceof BlockConveyor))
-            return false;
+        if(other.getBlock() instanceof BlockConveyor)
+        {
+            if(otherPos.offset(other.getValue(FACING)).equals(pos))
+            {
+                return false;
+            }
+        }
 
-        return other.offset(ret.getValue(FACING)).equals(pos);
+        otherPos = otherPos.offset(EnumFacing.UP);
+        other = world.getBlockState(otherPos);
+
+        if(other.getBlock() instanceof BlockConveyor)
+        {
+            return otherPos.offset(other.getValue(FACING)).offset(EnumFacing.DOWN).equals(pos);
+        }
+
+        return false;
+    }
+
+    private static boolean isFacingMe(IBlockAccess worldIn, BlockPos pos, EnumFacing facing, EnumTurn turn)
+    {
+        List<BlockPos> otherBlocks = findSpacesBehindUs(pos, facing, turn).collect(Collectors.toList());
+
+        for(BlockPos other : otherBlocks)
+        {
+            IBlockState ret = worldIn.getBlockState(other);
+
+            if (!(ret.getBlock() instanceof BlockConveyor))
+                continue;
+
+            other = other.add(0, pos.getY() - other.getY(), 0);
+
+            return other.offset(ret.getValue(FACING)).equals(pos);
+        }
+
+        return false;
     }
 
     @Override
@@ -200,16 +268,18 @@ public class BlockConveyor
     {
         EnumFacing facing = state.getValue(FACING);
         BlockPos otherPos = pos.offset(facing);
+        if(state.getValue(TURN) == EnumTurn.Up)
+        {
+            otherPos = otherPos.offset(EnumFacing.UP);
+        }
+
         IBlockState otherState = worldIn.getBlockState(otherPos);
         if(otherState.getBlock() instanceof BlockConveyor)
         {
-            facing = otherState.getValue(FACING);
-
-            IBlockState newState = calculateCorrectBlockState(worldIn, otherPos, otherState, facing);
+            IBlockState newState = calculateCorrectBlockState(worldIn, otherPos, otherState);
             if(newState != null)
             {
                 worldIn.setBlockState(otherPos, newState, 2);
-                ((TileEntityConveyor)worldIn.getTileEntity(otherPos)).notifyChange();
             }
         }
 
@@ -218,44 +288,105 @@ public class BlockConveyor
 
     private void ensureOrientedCorrectly(World worldIn, BlockPos pos, IBlockState state)
     {
-        EnumFacing facing = state.getValue(FACING);
-
-        IBlockState newState = calculateCorrectBlockState(worldIn, pos, state, facing);
+        IBlockState newState = calculateCorrectBlockState(worldIn, pos, state);
+        EnumTurn myTurn = newState.getValue(TURN);
         if(newState != state)
         {
             worldIn.setBlockState(pos, newState, 2);
-            ((TileEntityConveyor)worldIn.getTileEntity(pos)).notifyChange();
         }
 
         //we also need to ensure the block we're now facing is correct
-
+        EnumFacing facing = newState.getValue(FACING);
         pos = pos.offset(facing);
+        if(state.getValue(TURN) == EnumTurn.Up)
+        {
+            pos = pos.offset(EnumFacing.UP);
+        }
         state = worldIn.getBlockState(pos);
         if(state.getBlock() instanceof BlockConveyor)
         {
-            facing = state.getValue(FACING);
-
-            newState = calculateCorrectBlockState(worldIn, pos, state, facing);
+            newState = calculateCorrectBlockState(worldIn, pos, state);
             if(newState != null)
             {
                 worldIn.setBlockState(pos, newState, 2);
-                ((TileEntityConveyor)worldIn.getTileEntity(pos)).notifyChange();
+            }
+        }
+        else if(myTurn != EnumTurn.Up)
+        {
+            //maybe they're below us
+            pos = pos.offset(EnumFacing.DOWN);
+            state = worldIn.getBlockState(pos);
+            if(state.getBlock() instanceof BlockConveyor)
+            {
+                newState = calculateCorrectBlockState(worldIn, pos, state);
+                if(newState != null)
+                {
+                    worldIn.setBlockState(pos, newState, 2);
+                }
             }
         }
     }
 
-    private IBlockState calculateCorrectBlockState(World worldIn, BlockPos pos, IBlockState state, EnumFacing facing)
+    @Override
+    @Deprecated
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
-        IBlockState newState = state.withProperty(FACING, facing).withProperty(TURN, EnumTurn.Straight);
+        TileEntityConveyor te = (TileEntityConveyor)worldIn.getTileEntity(pos);
+        if(te != null)
+        {
+            state = state.withProperty(TURN, te.getTurn());
+        }
+        return state;
+    }
 
-        boolean left =     isFacingMe(worldIn, pos, facing, EnumTurn.Left);
-        boolean right =    isFacingMe(worldIn, pos, facing, EnumTurn.Right);
-        boolean behind =   isFacingMe(worldIn, pos, facing.getOpposite(), EnumTurn.Straight);
+    public static IBlockState calculateCorrectBlockState(IBlockAccess worldIn, BlockPos pos, IBlockState state)
+    {
+        /*
+        RULES:
+          1. Straight connections take priority
+         1a. A level connection takes priority over an up/down one
+             (this means you can stack conveyors on top of eachother,
+             even though that doesn't make much sense)
+          2. If left and right both connect, we are straight
+          3. If left xor right connect, we turn in that direction
+          4. We are straight
+         */
+        EnumFacing facing = state.getValue(FACING);
 
-        // if any of straight, left or right (in that order) are facing me, I want to re-orient myself to account for that
-        // on the other hand, if both left and right are facing me, I want to ignore them both
+        IBlockState newState = state.withProperty(TURN, EnumTurn.Straight);
 
-        if(!behind && (left ^ right)) {
+        boolean left =   isFacingMe(worldIn, pos, facing, EnumTurn.Left);
+        boolean right =  isFacingMe(worldIn, pos, facing, EnumTurn.Right);
+        boolean behind = isFacingMe(worldIn, pos, facing, EnumTurn.Straight);
+        boolean shouldFaceUp = shouldWeFaceUp(worldIn, pos, facing);
+        boolean shouldFaceDown = shouldWeFaceDown(worldIn, pos, facing);
+
+        // Rule 1: Straight connections take priority
+        if(behind || shouldFaceUp || shouldFaceDown)
+        {
+            //1a. A level connection takes priority over an up/down one
+            // (the should* functions take this into account)
+            if (shouldFaceDown)
+            {
+                newState = newState.withProperty(TURN, EnumTurn.Down);
+            }
+            else if(shouldFaceUp)
+            {
+                newState = newState.withProperty(TURN, EnumTurn.Up);
+            }
+            else
+            {
+                newState = newState.withProperty(TURN, EnumTurn.Straight);
+            }
+        }
+        // Rule 2: If left and right both connect, we are straight
+        else if(left && right)
+        {
+            newState = newState.withProperty(TURN, EnumTurn.Straight);
+        }
+        // Rule 3: If left xor right connect, we turn in that direction
+        else if(left ^ right)
+        {
             if(left)
             {
                 newState = newState.withProperty(TURN, EnumTurn.Left);
@@ -265,35 +396,51 @@ public class BlockConveyor
                 newState = newState.withProperty(TURN, EnumTurn.Right);
             }
         }
+        // Rule 4: We are straight
+        else
+        {
+            newState = newState.withProperty(TURN, EnumTurn.Straight);
+        }
 
         return newState;
     }
 
     @Override
+    @Deprecated
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
     {
+        EnumTurn t = getActualState(state, source, pos).getValue(TURN);
+
+        if(t == EnumTurn.Up || t == EnumTurn.Down)
+        {
+            return FULL_BLOCK_AABB;
+        }
         return collisionBoundingBox;
     }
 
     @Override
+    @Deprecated
     public boolean isFullBlock(IBlockState state)
     {
         return false;
     }
 
     @Override
+    @Deprecated
     public boolean isNormalCube(IBlockState state)
     {
         return false;
     }
 
     @Override
+    @Deprecated
     public boolean isFullCube(IBlockState state)
     {
         return false;
     }
 
     @Override
+    @Deprecated
     public boolean isOpaqueCube(IBlockState state)
     {
         return false;
@@ -326,7 +473,9 @@ public class BlockConveyor
     {
         Left,
         Right,
-        Straight;
+        Straight,
+        Up,
+        Down;
 
         @Override
         @Nonnull

@@ -13,8 +13,20 @@ public class MathTest
     private static Stream<Arguments> verifyRotationsSource()
     {
         return Stream.of(
-            Arguments.of(new Vector3f(1,0,0), new Vector3f(0, 1, 0), new Vector3f(0, 0, -1), (float)Math.toRadians(90f)),
-            Arguments.of(new Vector3f(1,0,0), new Vector3f(1, 1, 0), new Vector3f(0, 0, -0.70710677f),(float) Math.toRadians(45f))
+            Arguments.of(new Vector3f(1,0,0), new Vector3f(0, 1, 0), new Vector3f(0, 0, 1), (float)Math.toRadians(90f)),
+            Arguments.of(new Vector3f(1,0,0), new Vector3f(1, 1, 0), new Vector3f(0, 0, 1),(float) Math.toRadians(45f))
+        );
+    }
+
+    private static Stream<Arguments> verifyNormalizationSource()
+    {
+        return Stream.of(
+            Arguments.of(new Vector3f(0.5f,0,0), new Vector3f(1, 0, 0)),
+            Arguments.of(new Vector3f(25f,0,0), new Vector3f(1, 0, 0)),
+            Arguments.of(new Vector3f(0,25f,0), new Vector3f(0, 1, 0)),
+            Arguments.of(new Vector3f(0,0, 25f), new Vector3f(0, 0, 1)),
+            Arguments.of(new Vector3f(-0.5f,0,0), new Vector3f(-1, 0, 0)),
+            Arguments.of(new Vector3f(2f,2f,0), new Vector3f((float)Math.sqrt(2) / 2, (float)Math.sqrt(2) / 2, 0))
         );
     }
 
@@ -27,6 +39,16 @@ public class MathTest
 
         assertApproximately(expectedAngle, resultAngle);
         assertApproximately(expectedAxis, result);
+    }
+
+    @ParameterizedTest
+    @MethodSource("verifyNormalizationSource")
+    void verifyNormalization(Vector3f vector, Vector3f expected)
+    {
+        Vector3f normal = MathUtil.normalize(vector);
+
+        assertApproximately(1, normal.length());
+        assertApproximately(expected, normal);
     }
 
     private void assertApproximately(float expected, float actual)
