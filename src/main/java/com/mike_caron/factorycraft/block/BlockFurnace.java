@@ -105,6 +105,9 @@ public class BlockFurnace
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
     {
+        if(worldIn.isRemote)
+            return;
+
         EnumFacing blockFacing = placer.getHorizontalFacing().getOpposite();
 
         state = state.withProperty(FACING, blockFacing).withProperty(PART, 0);

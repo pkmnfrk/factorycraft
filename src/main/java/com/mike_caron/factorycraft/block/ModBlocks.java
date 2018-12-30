@@ -98,6 +98,8 @@ public class ModBlocks
         GameRegistry.registerTileEntity(TileEntityConveyor.class, new ResourceLocation(FactoryCraft.modId, "conveyor"));
         GameRegistry.registerTileEntity(TileEntityElectricalPole.class, new ResourceLocation(FactoryCraft.modId, "electrical_pole"));
         GameRegistry.registerTileEntity(TileEntityCreativePower.class, new ResourceLocation(FactoryCraft.modId, "creative_power"));
+        GameRegistry.registerTileEntity(TileEntityFurnace.class, new ResourceLocation(FactoryCraft.modId, "furnace"));
+        GameRegistry.registerTileEntity(TileEntityRedirect.class, new ResourceLocation(FactoryCraft.modId, "redirect"));
 
         ModBlocksBase.registerBlocks(ModBlocksBase.class);
 
