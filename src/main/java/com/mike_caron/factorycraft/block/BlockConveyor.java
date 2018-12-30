@@ -93,11 +93,11 @@ public class BlockConveyor
         int ret = super.getMetaFromState(state);
 
         EnumTurn turn = state.getValue(TURN);
-        if(turn == EnumTurn.Up)
+        if(turn == EnumTurn.Down)
         {
             ret += 4;
         }
-        else if(turn == EnumTurn.Down)
+        else if(turn == EnumTurn.Up)
         {
             ret += 8;
         }
@@ -119,11 +119,11 @@ public class BlockConveyor
         }
         else if(meta == 4)
         {
-            ret = ret.withProperty(TURN, EnumTurn.Up);
+            ret = ret.withProperty(TURN, EnumTurn.Down);
         }
         else if(meta == 8)
         {
-            ret = ret.withProperty(TURN, EnumTurn.Down);
+            ret = ret.withProperty(TURN, EnumTurn.Up);
         }
 
         return ret;
@@ -147,12 +147,12 @@ public class BlockConveyor
             case Up:
                 return Stream.of(
                     pos.offset(facing.getOpposite()),
-                    pos.offset(facing.getOpposite()).offset(EnumFacing.DOWN)
+                    pos.offset(facing.getOpposite()).offset(EnumFacing.UP)
                 );
             case Down:
                 return Stream.of(
                     pos.offset(facing.getOpposite()),
-                    pos.offset(facing.getOpposite()).offset(EnumFacing.UP)
+                    pos.offset(facing.getOpposite()).offset(EnumFacing.DOWN)
                 );
             case Straight:
                 return Stream.of(
@@ -164,7 +164,7 @@ public class BlockConveyor
         throw new Error("Impossible");
     }
 
-    private static boolean shouldWeFaceUp(IBlockAccess world, BlockPos pos, EnumFacing facing)
+    private static boolean shouldWeFaceDown(IBlockAccess world, BlockPos pos, EnumFacing facing)
     {
         //if there is a conveyor above and in front of us, but not directly in front of us,
         //then yes.
@@ -187,7 +187,7 @@ public class BlockConveyor
         return false;
     }
 
-    private static boolean shouldWeFaceDown(IBlockAccess world, BlockPos pos, EnumFacing facing)
+    private static boolean shouldWeFaceUp(IBlockAccess world, BlockPos pos, EnumFacing facing)
     {
         //if there is a conveyor above and behind us, and facing us,
         // but not directly behind us (or they're not facing us), then yes.
@@ -268,7 +268,7 @@ public class BlockConveyor
     {
         EnumFacing facing = state.getValue(FACING);
         BlockPos otherPos = pos.offset(facing);
-        if(state.getValue(TURN) == EnumTurn.Up)
+        if(state.getValue(TURN) == EnumTurn.Down)
         {
             otherPos = otherPos.offset(EnumFacing.UP);
         }
@@ -298,7 +298,7 @@ public class BlockConveyor
         //we also need to ensure the block we're now facing is correct
         EnumFacing facing = newState.getValue(FACING);
         pos = pos.offset(facing);
-        if(state.getValue(TURN) == EnumTurn.Up)
+        if(myTurn == EnumTurn.Down)
         {
             pos = pos.offset(EnumFacing.UP);
         }
@@ -311,7 +311,7 @@ public class BlockConveyor
                 worldIn.setBlockState(pos, newState, 2);
             }
         }
-        else if(myTurn != EnumTurn.Up)
+        else if(myTurn != EnumTurn.Down)
         {
             //maybe they're below us
             pos = pos.offset(EnumFacing.DOWN);
@@ -366,13 +366,13 @@ public class BlockConveyor
         {
             //1a. A level connection takes priority over an up/down one
             // (the should* functions take this into account)
-            if (shouldFaceDown)
-            {
-                newState = newState.withProperty(TURN, EnumTurn.Down);
-            }
-            else if(shouldFaceUp)
+            if(shouldFaceUp)
             {
                 newState = newState.withProperty(TURN, EnumTurn.Up);
+            }
+            else if (shouldFaceDown)
+            {
+                newState = newState.withProperty(TURN, EnumTurn.Down);
             }
             else
             {

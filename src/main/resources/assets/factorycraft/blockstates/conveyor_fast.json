@@ -23,15 +23,15 @@
     "facing=north,turn=s": [{ "y": 180, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
     "facing=east,turn=s":  [{ "y": 270, "textures": { "0": "factorycraft:block/conveyor/blue" } }],
 
-    "facing=south,turn=u": [{ "y":   0, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-     "facing=west,turn=u": [{ "y":  90, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-    "facing=north,turn=u": [{ "y": 180, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-     "facing=east,turn=u": [{ "y": 270, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=south,turn=d": [{ "y":   0, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+     "facing=west,turn=d": [{ "y":  90, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=north,turn=d": [{ "y": 180, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+     "facing=east,turn=d": [{ "y": 270, "model":"factorycraft:conveyor/up", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
 
-    "facing=south,turn=d": [{ "y":   0, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-     "facing=west,turn=d": [{ "y":  90, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-    "facing=north,turn=d": [{ "y": 180, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
-     "facing=east,turn=d": [{ "y": 270, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=south,turn=u": [{ "y":   0, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+     "facing=west,turn=u": [{ "y":  90, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+    "facing=north,turn=u": [{ "y": 180, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
+     "facing=east,turn=u": [{ "y": 270, "model":"factorycraft:conveyor/down", "textures": { "0": "factorycraft:block/conveyor/blue" } }],
 
     "facing=south,turn=r": [{ "y":  90, "model": "factorycraft:conveyor/turn_l" }],
     "facing=west,turn=r":  [{ "y": 180, "model": "factorycraft:conveyor/turn_l" }],

@@ -189,7 +189,14 @@ public class TileEntityConveyor
     private TileEntityConveyor findNextConveyor(BlockPos pos)
     {
         EnumFacing facing = getFacing(pos);
+        BlockConveyor.EnumTurn turn = getTurn();
         BlockPos nextPos = pos.offset(facing);
+
+        if(turn == BlockConveyor.EnumTurn.Up)
+        {
+
+        }
+
         TileEntity te = world.getTileEntity(nextPos);
         if(te instanceof TileEntityConveyor)
             return (TileEntityConveyor)te;
@@ -433,14 +440,14 @@ public class TileEntityConveyor
                     angle = facing.getOpposite().getHorizontalAngle();
                     northPoint = new Vector3f(x, y, z);
                     break;
-                case Up:
+                case Down:
                     x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
                     y = 0.125f + 0.875f * (position / tracks.get(track).maxLength);
                     angle = facing.getOpposite().getHorizontalAngle();
                     northPoint = new Vector3f(x, y, z);
                     break;
-                case Down:
+                case Up:
                     x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
                     y = 0.125f + 0.875f * (1f - position / tracks.get(track).maxLength);
