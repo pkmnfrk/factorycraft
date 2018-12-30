@@ -5,6 +5,7 @@ import com.mike_caron.factorycraft.client.gui.GuiConst;
 import com.mike_caron.factorycraft.client.rendering.GrabberRenderer;
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -17,18 +18,21 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.property.IUnlistedProperty;
+import net.minecraftforge.common.property.Properties;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Random;
 
 import static com.mike_caron.factorycraft.tileentity.TileEntityGrabber.TYPE_BURNER;
 
 public class BlockGrabber
-    extends AnimatedMachineBase
+    extends WeirdModelBlockBase
 {
     private final int type;
 
@@ -51,6 +55,26 @@ public class BlockGrabber
         super.initModel();
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGrabber.class, new GrabberRenderer());
+    }
+
+    @Override
+    protected void addAdditionalPropeties(List<IProperty<?>> properties)
+    {
+        super.addAdditionalPropeties(properties);
+        properties.add(Properties.StaticProperty);
+    }
+
+    @Override
+    protected void addAdditionalUnlistedProperties(List<IUnlistedProperty<?>> properties)
+    {
+        super.addAdditionalUnlistedProperties(properties);
+        properties.add(Properties.AnimationProperty);
+    }
+
+    @Override
+    public boolean hasTileEntity(IBlockState state)
+    {
+        return true;
     }
 
     @Nullable

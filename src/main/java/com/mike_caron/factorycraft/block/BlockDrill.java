@@ -3,7 +3,6 @@ package com.mike_caron.factorycraft.block;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.client.gui.GuiConst;
 import com.mike_caron.factorycraft.tileentity.TileEntityDrill;
-import com.mike_caron.mikesmodslib.block.MachineBlockBase;
 import com.mike_caron.mikesmodslib.client.AnimationAdapter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -30,11 +29,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class BlockDrill
-    extends MachineBlockBase
+    extends WeirdModelBlockBase
 {
     private final int type;
-
-    private AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0, 0, 0, 1, 0.5, 1);
 
     public BlockDrill(String name, int type)
     {
@@ -76,60 +73,6 @@ public class BlockDrill
     }
 
     @Override
-    public boolean isNormalCube(IBlockState state, IBlockAccess world, BlockPos pos)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isFullBlock(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isNormalCube(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isFullCube(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isTopSolid(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isTranslucent(IBlockState state)
-    {
-        return true;
-    }
-
-    @Override
-    public boolean isBlockNormalCube(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isOpaqueCube(IBlockState state)
-    {
-        return false;
-    }
-
-    @Override
-    public boolean hasInfo(EntityPlayer player)
-    {
-        return false;
-    }
-
-    @Override
     public boolean hasTileEntity(IBlockState state)
     {
         return true;
@@ -153,9 +96,9 @@ public class BlockDrill
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
+    protected AxisAlignedBB getCachedBoundingBox()
     {
-        return BOUNDING_BOX;
+        return new AxisAlignedBB(0, 0, 0, 1, 0.5, 1);
     }
 
     @Override

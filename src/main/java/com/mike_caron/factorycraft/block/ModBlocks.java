@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.item.ItemFurnaceBlock;
 import com.mike_caron.factorycraft.tileentity.*;
 import com.mike_caron.factorycraft.world.OreKind;
 import com.mike_caron.mikesmodslib.block.ModBlocksBase;
@@ -58,6 +59,9 @@ public class ModBlocks
     //@GameRegistry.ObjectHolder("large_electrical_pole")
     //public static final BlockElectricalPole large_electrical_pole = null;
 
+    @GameRegistry.ObjectHolder("furnace_stone")
+    public static final BlockFurnace furnace_stone = null;
+
     @GameRegistry.ObjectHolder("creative_power")
     public static final BlockCreativePower creative_power = null;
 
@@ -85,6 +89,8 @@ public class ModBlocks
 
         registry.register(new BlockElectricalPole("small_electrical_pole", 0));
 
+        registry.register(new BlockFurnace("furnace_stone", 0));
+
         registry.register(new BlockCreativePower("creative_power"));
 
         GameRegistry.registerTileEntity(TileEntityDrill.class, new ResourceLocation(FactoryCraft.modId, "drill"));
@@ -101,7 +107,11 @@ public class ModBlocks
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event)
     {
-        ModBlocksBase.registerItems(event, ModBlocks.class);
+        ModBlocksBase.registerItems(event, ModBlocks.class, block -> {
+            if(block instanceof BlockFurnace)
+                return new ItemFurnaceBlock(block);
+            return null;
+        });
     }
 
     @SideOnly(Side.CLIENT)

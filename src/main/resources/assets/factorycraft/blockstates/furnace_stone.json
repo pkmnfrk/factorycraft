@@ -1,0 +1,25 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "factorycraft:drill2"
+  },
+  "variants": {
+    "inventory": [{
+      "model": "factorycraft:furnace/stone_inv"
+    }],
+    "facing": {
+      "south": {          },
+      "west":  { "y": 90  },
+      "north": { "y": 180 },
+      "east":  { "y": 270 }
+    },
+    "part": {
+      "0": {
+        "model": "factorycraft:furnace/stone_l"
+      },
+      "1": {
+        "model": "factorycraft:furnace/stone_r"
+      }
+    }
+  }
+}
