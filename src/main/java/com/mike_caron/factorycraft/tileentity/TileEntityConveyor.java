@@ -192,14 +192,28 @@ public class TileEntityConveyor
         BlockConveyor.EnumTurn turn = getTurn();
         BlockPos nextPos = pos.offset(facing);
 
-        if(turn == BlockConveyor.EnumTurn.Up)
+        if(turn == BlockConveyor.EnumTurn.Down)
         {
+            nextPos = nextPos.offset(EnumFacing.UP);
 
+            TileEntity te = world.getTileEntity(nextPos);
+            if(te instanceof TileEntityConveyor)
+                return (TileEntityConveyor)te;
         }
 
-        TileEntity te = world.getTileEntity(nextPos);
-        if(te instanceof TileEntityConveyor)
-            return (TileEntityConveyor)te;
+        else
+        {
+            TileEntity te = world.getTileEntity(nextPos);
+            if (te instanceof TileEntityConveyor)
+                return (TileEntityConveyor) te;
+
+            //hm, it might be down one
+            nextPos = nextPos.offset(EnumFacing.DOWN);
+
+            te = world.getTileEntity(nextPos);
+            if (te instanceof TileEntityConveyor)
+                return (TileEntityConveyor) te;
+        }
 
         return null;
     }
@@ -353,12 +367,7 @@ public class TileEntityConveyor
 
     public ItemPosition itemPositions()
     {
-        IBlockState state = world.getBlockState(pos);
-
-        EnumFacing facing = state.getValue(BlockConveyor.FACING);
-        BlockConveyor.EnumTurn turn = state.getValue(BlockConveyor.TURN);
-
-        return itemPositions(facing, turn);
+        return itemPositions(getFacing(), getTurn());
     }
 
     public ItemPosition itemPositions(EnumFacing facing, BlockConveyor.EnumTurn turn)
@@ -443,14 +452,14 @@ public class TileEntityConveyor
                 case Down:
                     x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
-                    y = 0.125f + 0.875f * (position / tracks.get(track).maxLength);
+                    y = 0.125f + (position / tracks.get(track).maxLength);
                     angle = facing.getOpposite().getHorizontalAngle();
                     northPoint = new Vector3f(x, y, z);
                     break;
                 case Up:
                     x = (0.25f + 0.5f * (1 - track));
                     z = (position / tracks.get(track).maxLength);
-                    y = 0.125f + 0.875f * (1f - position / tracks.get(track).maxLength);
+                    y = 0.125f + (1f - position / tracks.get(track).maxLength);
                     angle = facing.getOpposite().getHorizontalAngle();
                     northPoint = new Vector3f(x, y, z);
                     break;
