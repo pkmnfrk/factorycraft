@@ -139,7 +139,7 @@ public class BlockBoulder
             {
                 if(oreDeposit.mineOne())
                 {
-                    ItemUtils.dropItem(world, oreDeposit.getOreKind().ore.copy(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                    ItemUtils.dropItem(world, oreDeposit.getOreKind().ore.get(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
                 }
             }
 
@@ -157,7 +157,7 @@ public class BlockBoulder
 
         if(oreDeposit != null)
         {
-            iProbeInfo.horizontal(iProbeInfo.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER)).item(oreDeposit.getOreKind().ore).text(Long.toString(oreDeposit.getSize()));
+            iProbeInfo.horizontal(iProbeInfo.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER)).item(oreDeposit.getOreKind().ore.get()).text(Long.toString(oreDeposit.getSize()));
         }
 
     }

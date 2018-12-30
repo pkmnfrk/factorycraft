@@ -196,7 +196,7 @@ public class TileEntityDrill
                     IConveyorBelt outputConveyor = getOuptutConveyor();
                     IItemHandler outputInventory = getOuptutInventory();
 
-                    ItemStack ore = deposit.getOreKind().ore;
+                    ItemStack ore = deposit.getOreKind().ore.get();
                     miningTarget = ore;
 
                     if((outputInventory == null && outputConveyor == null) || (outputConveyor != null && tryInsert(ore, outputConveyor, true) != ore) || (outputInventory != null && tryInsert(ore, outputInventory, true) != ore))
@@ -224,13 +224,13 @@ public class TileEntityDrill
                                 }
                                 else if(outputInventory != null)
                                 {
-                                    ItemUtils.insertItemIfPossible(deposit.getOreKind().ore, outputInventory);
+                                    ItemUtils.insertItemIfPossible(deposit.getOreKind().ore.get(), outputInventory);
                                 }
                                 else
                                 {
                                     Vec3d output = getOutput();
 
-                                    ItemUtils.dropItem(world, deposit.getOreKind().ore.copy(), output.x, output.y, output.z);
+                                    ItemUtils.dropItem(world, deposit.getOreKind().ore.get(), output.x, output.y, output.z);
                                 }
 
                                 if(deposit.getSize() <= 0)

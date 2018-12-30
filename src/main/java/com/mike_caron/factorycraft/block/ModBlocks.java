@@ -24,6 +24,11 @@ public class ModBlocks
 {
     private ModBlocks(){}
 
+    @GameRegistry.ObjectHolder("ore_copper")
+    public static final BlockOre ore_copper = null;
+    @GameRegistry.ObjectHolder("ore_uranium")
+    public static final BlockOre ore_uranium = null;
+
     @GameRegistry.ObjectHolder("boulder_iron")
     public static final BlockBoulder boulder_iron = null;
     @GameRegistry.ObjectHolder("boulder_copper")
@@ -90,6 +95,9 @@ public class ModBlocks
         registry.register(new BlockElectricalPole("small_electrical_pole", 0));
 
         registry.register(new BlockFurnace("furnace_stone", 0));
+
+        registry.register(new BlockOre("ore_copper"));
+        registry.register(new BlockOre("ore_uranium").setHardness(15f).setLightLevel(2/16f));
 
         registry.register(new BlockCreativePower("creative_power"));
 

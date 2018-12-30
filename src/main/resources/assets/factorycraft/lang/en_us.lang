@@ -17,3 +17,8 @@ tile.factorycraft:grabber.name=Inserter
 tile.factorycraft:grabber_burner.name=Burner Inserter
 
 tile.factorycraft:furnace_stone.name=Stone Furnace
+
+tile.factorycraft:ore_copper.name=Copper Ore
+tile.factorycraft:ore_uranium.name=Uranium Ore
+
+item.factorycraft:ingot_copoper.name=Copper Ingot
