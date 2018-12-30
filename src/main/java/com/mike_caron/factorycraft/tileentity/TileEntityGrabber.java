@@ -249,6 +249,14 @@ public class TileEntityGrabber
                     {
                         for (int i = 0; i < inputItemHandler.getSlots(); i++)
                         {
+                            EnumSlotKind slotKind = EnumSlotKind.NONE;
+                            if(inputItemHandler instanceof ISlotKind)
+                            {
+                                slotKind = ((ISlotKind) inputItemHandler).getSlotKind(i);
+                            }
+                            if(slotKind == EnumSlotKind.FUEL || slotKind == EnumSlotKind.INPUT)
+                                continue;
+                            
                             prospectiveItem = inputItemHandler.extractItem(i, 1, true);
                             if (!prospectiveItem
                                     .isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
