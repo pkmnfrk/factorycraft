@@ -160,7 +160,7 @@ public class SolidEnergyAppliance
         public EnumSlotKind getSlotKind(int slot)
         {
             if(slot == 0)
-                return EnumSlotKind.FUEL;
+                return EnumSlotKind.INPUT;
 
             return EnumSlotKind.NONE;
         }

@@ -254,9 +254,9 @@ public class TileEntityGrabber
                             {
                                 slotKind = ((ISlotKind) inputItemHandler).getSlotKind(i);
                             }
-                            if(slotKind == EnumSlotKind.FUEL || slotKind == EnumSlotKind.INPUT)
+                            if(slotKind == EnumSlotKind.INPUT)
                                 continue;
-                            
+
                             prospectiveItem = inputItemHandler.extractItem(i, 1, true);
                             if (!prospectiveItem
                                     .isEmpty() && isValidToOutput(prospectiveItem, outputSpace, outputItemHandler, outputConveyorBelt, outputTileEntity))
@@ -533,11 +533,8 @@ public class TileEntityGrabber
                         switch (slotKind)
                         {
                             case OUTPUT:
-                            case NONE:
                                 continue;
-                            case FUEL:
-                                if(!isFuel)
-                                    continue;
+                            case NONE:
                             case INPUT:
                                 return true;
                         }

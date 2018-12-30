@@ -4,8 +4,7 @@ public enum EnumSlotKind
 {
     NONE,
     INPUT,
-    OUTPUT,
-    FUEL;
+    OUTPUT;
 
 
 }
