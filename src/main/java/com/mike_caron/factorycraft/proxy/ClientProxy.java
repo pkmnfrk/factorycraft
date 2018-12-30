@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.proxy;
 
 import com.mike_caron.factorycraft.block.ModBlocks;
+import com.mike_caron.factorycraft.item.ModItems;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -35,7 +36,7 @@ public class ClientProxy
     public static void registerModels(ModelRegistryEvent event)
     {
         ModBlocks.initModels();
-        //ModItems.initModels();
+        ModItems.initModels();
 
         //ModBlocks.renderFluids();
 

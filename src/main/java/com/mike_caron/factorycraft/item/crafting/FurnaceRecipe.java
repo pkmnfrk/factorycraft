@@ -1,5 +1,7 @@
 package com.mike_caron.factorycraft.item.crafting;
 
+import com.mike_caron.factorycraft.block.ModBlocks;
+import com.mike_caron.factorycraft.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -20,6 +22,7 @@ public class FurnaceRecipe
     private FurnaceRecipe()
     {
         addRecipe(Blocks.IRON_ORE, 1, new ItemStack(Items.IRON_INGOT), 3.5f);
+        addRecipe(ModBlocks.ore_copper, 1, new ItemStack(ModItems.ingot_copper), 3.5f);
     }
 
     private void addRecipe(Block in, int count, ItemStack out, float time)
