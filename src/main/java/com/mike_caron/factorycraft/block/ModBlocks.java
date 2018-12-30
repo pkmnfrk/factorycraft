@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.block;
 
 import com.mike_caron.factorycraft.FactoryCraft;
+import com.mike_caron.factorycraft.item.ItemConveyorBlock;
 import com.mike_caron.factorycraft.item.ItemFurnaceBlock;
 import com.mike_caron.factorycraft.tileentity.*;
 import com.mike_caron.factorycraft.world.OreKind;
@@ -120,6 +121,8 @@ public class ModBlocks
         ModBlocksBase.registerItems(event, ModBlocks.class, block -> {
             if(block instanceof BlockFurnace)
                 return new ItemFurnaceBlock(block);
+            if(block instanceof BlockConveyor)
+                return new ItemConveyorBlock(block);
             return null;
         });
     }
