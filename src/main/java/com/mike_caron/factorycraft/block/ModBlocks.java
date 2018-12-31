@@ -50,6 +50,8 @@ public class ModBlocks
     public static final BlockGrabber grabber_burner = null;
     @GameRegistry.ObjectHolder("grabber")
     public static final BlockGrabber grabber = null;
+    @GameRegistry.ObjectHolder("grabber_long")
+    public static final BlockGrabber grabber_long = null;
 
     @GameRegistry.ObjectHolder("conveyor_slow")
     public static final BlockConveyor conveyor_slow = null;
@@ -88,6 +90,7 @@ public class ModBlocks
 
         registry.register(new BlockGrabber("grabber_burner", TileEntityGrabber.TYPE_BURNER));
         registry.register(new BlockGrabber("grabber", TileEntityGrabber.TYPE_REGULAR));
+        registry.register(new BlockGrabber("grabber_long", TileEntityGrabber.TYPE_LONG));
 
         registry.register(new BlockConveyor("conveyor_slow", 0));
         registry.register(new BlockConveyor("conveyor_medium", 1));

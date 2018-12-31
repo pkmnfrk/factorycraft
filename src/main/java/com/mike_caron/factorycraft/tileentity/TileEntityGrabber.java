@@ -592,14 +592,24 @@ public class TileEntityGrabber
     {
         EnumFacing facing = getFacing().getOpposite();
 
-        return pos.offset(facing);
+        int n = 1;
+
+        if(type == TYPE_LONG)
+            n = 2;
+
+        return pos.offset(facing, n);
     }
 
     private BlockPos getOutputSpace()
     {
         EnumFacing facing = getFacing();
 
-        return pos.offset(facing);
+        int n = 1;
+
+        if(type == TYPE_LONG)
+            n = 2;
+
+        return pos.offset(facing, n);
     }
 
     private double getSpeed()
@@ -609,7 +619,7 @@ public class TileEntityGrabber
             case TYPE_BURNER:
                 return 0.845;
             case TYPE_REGULAR:
-                return 0.6;
+                return 0.56;
             case TYPE_LONG:
                 return 0.4335;
             case TYPE_FAST:

@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.client.rendering;
 
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
+import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -9,6 +10,7 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.IBlockAccess;
@@ -71,7 +73,12 @@ public class GrabberRenderer
 
         if(!te.getHeld().isEmpty())
         {
-            final float armLength = 1f;
+            float armLength = 1f;
+
+            if(te.getType() == TileEntityGrabber.TYPE_LONG)
+            {
+                armLength = 2f;
+            }
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(x + 0.5, y + 1/16f, z + 0.5);
@@ -99,10 +106,33 @@ public class GrabberRenderer
         }
 
         IExtendedBlockState exState = (IExtendedBlockState)state;
+        EnumFacing facing = state.getValue(FacingBlockBase.FACING);
 
         //float time = Animation.getWorldTime(this.getWorld(), partialTick);
 
         IBakedModel model = blockRenderer.getBlockModelShapes().getModelForState(exState.getClean());
+
+        if(te.getType() == TileEntityGrabber.TYPE_LONG)
+        {
+            switch(facing)
+            {
+                case WEST:
+                    renderer.setTranslation(0.5, 0, 0);
+                    break;
+                case EAST:
+                    renderer.setTranslation(-0.5, 0, 0);
+                    break;
+                case SOUTH:
+                    renderer.setTranslation(0, 0, -0.5);
+                    break;
+                case NORTH:
+                    renderer.setTranslation(0, 0, 0.5);
+                    break;
+                    default:
+                        renderer.setTranslation(0, 0, 0);
+            }
+
+        }
 
         //renderer.setTranslation(x - (double)pos.getX(), y - (double)pos.getY(), z - (double)pos.getZ());
 

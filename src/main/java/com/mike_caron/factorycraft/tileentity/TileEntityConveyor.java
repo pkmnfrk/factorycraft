@@ -709,7 +709,7 @@ public class TileEntityConveyor
             //3. If the next conveyor is not aligned, then we push them onto the
             //   appropriate spot on the closest track
 
-            float speed = (type + 1) / 32f;
+            float speed = 1 / 32f;
 
             /*
             if(world.isRemote)
@@ -733,24 +733,24 @@ public class TileEntityConveyor
                 {
                     if (isAligned(nextConveyor))
                     {
-                        updateAligned(speed, nextConveyor.tracks.get(trackNum));
+                        updateAligned(speed, type + 1, nextConveyor.tracks.get(trackNum));
                     }
                     else
                     {
                         Track nextTrack = getNearestTrack(nextConveyor);
                         if (nextTrack != null)
                         {
-                            updateMisaligned(speed, nextTrack, getMyPosition(nextConveyor));
+                            updateMisaligned(speed, type + 1, nextTrack, getMyPosition(nextConveyor));
                         }
                         else
                         {
-                            updateNone(speed);
+                            updateNone(speed, type + 1);
                         }
                     }
                 }
                 else
                 {
-                    updateNone(speed);
+                    updateNone(speed, type + 1);
                 }
             }
             catch(Exception ex)
@@ -777,7 +777,7 @@ public class TileEntityConveyor
 
         }
 
-        private void updateNone(float speed)
+        private void updateNone(float speed, int iter)
         {
             boolean changed = false;
             float lastPos = maxLength;
@@ -786,61 +786,21 @@ public class TileEntityConveyor
             {
                 Tuple2<Float, ItemStack> item = items.get(i);
 
-                float newPos = item.first + speed;
+                float newPos = item.first;
 
-                if(newPos + ITEM_RADIUS > lastPos)
+                for(int j = 0; j < iter; j++)
                 {
-                    newPos = lastPos - ITEM_RADIUS;
+                    newPos += speed;
+
+                    if (newPos + ITEM_RADIUS > lastPos)
+                    {
+                        newPos = lastPos - ITEM_RADIUS;
+                    }
                 }
 
                 lastPos = newPos - ITEM_RADIUS;
 
                 if(newPos != lastPos)
-                {
-                    items.set(i, new Tuple2<Float, ItemStack>(newPos, item.second));
-                    //changed = true;
-                }
-            }
-
-            if(changed && !world.isRemote)
-            {
-                markAndNotify();
-            }
-        }
-
-        private void updateAligned(float speed, Track nextTrack)
-        {
-            boolean changed = false;
-            float lastPos = maxLength + 1f;
-
-            if(nextTrack.items.size() > 0)
-                lastPos = maxLength + nextTrack.items.get(0).first - ITEM_RADIUS;
-
-            for(int i = items.size() - 1; i >= 0; i--)
-            {
-                Tuple2<Float, ItemStack> item = items.get(i);
-
-                float newPos = item.first + speed;
-
-                if(newPos + ITEM_RADIUS > lastPos)
-                {
-                    newPos = lastPos - ITEM_RADIUS;
-                }
-
-                lastPos = newPos - ITEM_RADIUS;
-
-                if(newPos > maxLength)
-                {
-                    ItemStack res = nextTrack.insert(newPos - maxLength, item.second, false);
-                    if(res.isEmpty())
-                    {
-                        newPos -= maxLength;
-                        items.remove(item);
-                        i -= 1;
-                        changed = true;
-                    }
-                }
-                else if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
                     //changed = true;
@@ -853,7 +813,58 @@ public class TileEntityConveyor
             }
         }
 
-        private void updateMisaligned(float speed, Track nextTrack, float myPos)
+        private void updateAligned(float speed, int iter, Track nextTrack)
+        {
+            boolean changed = false;
+            float lastPos = maxLength + 1f;
+
+            if(nextTrack.items.size() > 0)
+                lastPos = maxLength + nextTrack.items.get(0).first - ITEM_RADIUS;
+
+            for(int i = items.size() - 1; i >= 0; i--)
+            {
+                Tuple2<Float, ItemStack> item = items.get(i);
+
+                float newPos = item.first;
+
+                for(int j = 0; j < iter; j++)
+                {
+                    newPos += speed;
+
+                    if (newPos + ITEM_RADIUS > lastPos)
+                    {
+                        newPos = lastPos - ITEM_RADIUS;
+                    }
+
+                    if (newPos > maxLength)
+                    {
+                        ItemStack res = nextTrack.insert(newPos - maxLength, item.second, false);
+                        if (res.isEmpty())
+                        {
+                            //newPos -= maxLength;
+                            items.remove(i);
+                            i -= 1;
+                            changed = true;
+                            break;
+                        }
+                    }
+                    else if (newPos != lastPos)
+                    {
+                        items.set(i, new Tuple2<>(newPos, item.second));
+                        //changed = true;
+                    }
+                }
+
+                lastPos = newPos - ITEM_RADIUS;
+            }
+
+            if(changed && !world.isRemote)
+            {
+                markAndNotify();
+            }
+        }
+
+        private void updateMisaligned(float speed, int iter, Track nextTrack, float myPos)
         {
             boolean changed = false;
             float lastPos = maxLength;
@@ -869,30 +880,39 @@ public class TileEntityConveyor
             {
                 Tuple2<Float, ItemStack> item = items.get(i);
 
-                float newPos = item.first + speed;
+                float newPos = item.first;
 
-                if(newPos + ITEM_RADIUS > lastPos)
+                for(int j = 0; j < iter; j++)
                 {
-                    newPos = lastPos - ITEM_RADIUS;
-                }
+                    newPos += speed;
 
-                lastPos = newPos - ITEM_RADIUS;
-
-                if(newPos > maxLength)
-                {
-                    ItemStack res = nextTrack.insert(myPos, item.second, false);
-                    if(res.isEmpty())
+                    if (newPos + ITEM_RADIUS > lastPos)
                     {
-                        lastPos = maxLength;
-                        items.remove(item);
-                        i -= 1;
-                        changed = true;
+                        newPos = lastPos - ITEM_RADIUS;
+                    }
+
+                    if (newPos > maxLength)
+                    {
+                        ItemStack res = nextTrack.insert(myPos, item.second, false);
+                        if (res.isEmpty())
+                        {
+                            lastPos = maxLength - ITEM_RADIUS;
+                            items.remove(i);
+                            i -= 1;
+                            changed = true;
+                            break;
+                        }
+                    }
+                    else if (newPos != lastPos)
+                    {
+                        items.set(i, new Tuple2<>(newPos, item.second));
+                        //changed = true;
                     }
                 }
-                else if(newPos != lastPos)
+
+                if(!changed)
                 {
-                    items.set(i, new Tuple2<>(newPos, item.second));
-                    //changed = true;
+                    lastPos = newPos - ITEM_RADIUS;
                 }
             }
 
