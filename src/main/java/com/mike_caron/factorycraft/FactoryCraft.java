@@ -8,6 +8,7 @@ import com.mike_caron.factorycraft.api.energy.IEnergyConnector;
 import com.mike_caron.factorycraft.api.energy.IEnergyManager;
 import com.mike_caron.factorycraft.capability.*;
 import com.mike_caron.factorycraft.energy.EnergyManager;
+import com.mike_caron.factorycraft.item.ModItems;
 import com.mike_caron.factorycraft.proxy.GuiProxy;
 import com.mike_caron.factorycraft.proxy.IModProxy;
 import com.mike_caron.factorycraft.util.ClientUtil;
@@ -99,6 +100,8 @@ public class FactoryCraft
         CapabilityManager.INSTANCE.register(IConveyorBelt.class, new CapabilityConveyorStorage(), () -> null);
         CapabilityManager.INSTANCE.register(IEnergyManager.class, new CapabilityEnergyManagerStorage(), () -> null);
         CapabilityManager.INSTANCE.register(IEnergyConnector.class, new NullStorage<>(), () -> null);
+
+        ModItems.registerOreDict();
 
         MainCompatHandler.registerAllInit();
     }

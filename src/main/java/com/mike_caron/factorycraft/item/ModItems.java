@@ -22,38 +22,39 @@ public class ModItems
 {
     @GameRegistry.ObjectHolder("ingot_copper")
     public static final ItemResource ingot_copper = null;
+    @GameRegistry.ObjectHolder("iron_gear")
+    public static final ItemResource iron_gear = null;
+    @GameRegistry.ObjectHolder("copper_cable")
+    public static final ItemResource copper_cable = null;
+    @GameRegistry.ObjectHolder("electronic_circuit")
+    public static final ItemResource electronic_circuit = null;
 
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event)
     {
         IForgeRegistry<Item> registry = event.getRegistry();
 
-        registry.register(new ItemResource("ingot_copper"));
+        registry.register(new ItemResource("ingot_copper", "ingotCopper"));
+        registry.register(new ItemResource("iron_gear"));
+        registry.register(new ItemResource("copper_cable"));
+        registry.register(new ItemResource("electronic_circuit"));
+    }
 
-        /*
-        OreDictionary.registerOre("ingotMoney", ingotMoney);
-        OreDictionary.registerOre("ingotDenseMoney", ingotDenseMoney);
-        */
+    public static void registerOreDict()
+    {
+        getAllItems().filter(item -> !(item instanceof ItemResource)).map(item -> (ItemResource)item).forEach(item ->
+        {
+            for(String oreDict : item.getOreDicts())
+            {
+                OreDictionary.registerOre(oreDict, item);
+            }
+        });
     }
 
     @SideOnly(Side.CLIENT)
     public static void initModels()
     {
-        //initModel(ingotMoney);
-        //initModel(ingotDenseMoney);
-
-        getAllItems().forEach(item ->
-        {
-            item.initModel();
-
-            if(item instanceof ItemResource)
-            {
-                for(String oreDict : ((ItemResource) item).getOreDicts())
-                {
-                    OreDictionary.registerOre(oreDict, item);
-                }
-            }
-        });
+        getAllItems().forEach(ItemBase::initModel);
     }
 
     public static Stream<ItemBase> getAllItems()
@@ -61,7 +62,14 @@ public class ModItems
         return Arrays.stream(ModItems.class.getDeclaredFields()).filter(f -> Modifier.isStatic(f.getModifiers()) && ItemBase.class.isAssignableFrom(f.getType())).map(f -> {
             try
             {
-                return (ItemBase) f.get(null);
+                ItemBase ret = (ItemBase) f.get(null);
+
+                if(ret == null)
+                {
+                    FactoryCraft.logger.error("The item " + f.getName() + " is null??");
+                }
+
+                return ret;
             }
             catch (IllegalAccessException e)
             {
