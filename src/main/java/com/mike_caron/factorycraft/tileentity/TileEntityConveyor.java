@@ -41,7 +41,7 @@ public class TileEntityConveyor
     implements IConveyorBelt, ITickable
 {
     public final List<Track> tracks = new ArrayList<>();
-    public static final float ITEM_RADIUS = 4.5f / 32f;
+    public static final float ITEM_RADIUS = 4f / 32f;
 
     public BlockConveyor.EnumTurn cachedTurn;
     public EnumFacing cachedFacing;
