@@ -7,17 +7,23 @@
       "model": "factorycraft:furnace/stone_inv"
     }],
     "facing": {
-      "south": {          },
-      "west":  { "y": 90  },
-      "north": { "y": 180 },
-      "east":  { "y": 270 }
+      "south": { "y": 180 },
+      "west":  { "y": 270 },
+      "north": { "y":   0 },
+      "east":  { "y":  90 }
     },
     "part": {
       "0": {
-        "model": "factorycraft:furnace/stone_l"
+        "model": "factorycraft:furnace/stone_fl"
       },
       "1": {
-        "model": "factorycraft:furnace/stone_r"
+        "model": "factorycraft:furnace/stone_fr"
+      },
+      "2": {
+        "model": "factorycraft:furnace/stone_rl"
+      },
+      "3": {
+        "model": "factorycraft:furnace/stone_rr"
       }
     },
     "active": {

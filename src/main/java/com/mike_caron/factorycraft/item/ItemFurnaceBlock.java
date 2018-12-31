@@ -1,6 +1,8 @@
 package com.mike_caron.factorycraft.item;
 
+import com.mike_caron.factorycraft.block.BlockFurnace;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
@@ -10,6 +12,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemFurnaceBlock
     extends ItemBlock
@@ -30,26 +35,31 @@ public class ItemFurnaceBlock
             pos = pos.offset(side);
         }
 
-        if(!worldIn.mayPlace(this.block, pos, false, side, null))
-        {
-            return false;
-        }
+        EnumFacing blockFacing = player.getHorizontalFacing().getOpposite();
 
-        //also need to check the block to the right.
-        EnumFacing newFacing = player.getHorizontalFacing().rotateY();
-        pos = pos.offset(newFacing);
-        if(!worldIn.mayPlace(this.block, pos, false, side, null))
+        for(int part = 0; part < 4; part++)
         {
-            //maybe to the left???
-            newFacing = newFacing.getOpposite();
-            pos = pos.offset(newFacing, 2);
+            List<BlockPos> parts = BlockFurnace.getOtherBlocks(pos, blockFacing, 0).collect(Collectors.toList());
 
-            if(!worldIn.mayPlace(this.block, pos, false, side, null))
+            boolean allGood = true;
+
+            for(int i = 0; i < parts.size(); i++)
             {
-                return false;
+                BlockPos p = parts.get(i);
+                IBlockState blockState = worldIn.getBlockState(p);
+                if(!worldIn.mayPlace(this.block, p, false, side, null))
+                {
+                    allGood = false;
+                    break;
+                }
             }
+
+            if(!allGood)
+                continue;
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

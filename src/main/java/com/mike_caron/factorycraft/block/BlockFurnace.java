@@ -28,13 +28,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BlockFurnace
     extends WeirdModelBlockBase
 {
     private int type;
 
-    private static final PropertyInteger PART = PropertyInteger.create("part", 0, 1);
+    private static final PropertyInteger PART = PropertyInteger.create("part", 0, 3);
     private static final PropertyBool ACTIVE = PropertyBool.create("active");
 
     public BlockFurnace(String name, int type)
@@ -60,6 +62,9 @@ public class BlockFurnace
                 return new TileEntityFurnace(type);
             case 1:
                 return new TileEntityRedirect(state.getValue(FACING).rotateY());
+            case 2:
+            case 3:
+                return new TileEntityRedirect(state.getValue(FACING));
         }
         return null;
     }
@@ -103,7 +108,7 @@ public class BlockFurnace
     {
         IBlockState ret = super.getStateFromMeta(meta);
 
-        int part = (meta >> 2) & 1;
+        int part = (meta >> 2) & 3;
 
         ret = ret.withProperty(PART, part);
 
@@ -126,32 +131,43 @@ public class BlockFurnace
 
         state = state.withProperty(FACING, blockFacing).withProperty(PART, 0);
 
-        BlockPos other = getOtherBlock(pos, state);
-
-        IBlockState otherState = worldIn.getBlockState(other);
-
-        if(!otherState.getBlock().isReplaceable(worldIn, other))
+        for(int part = 0; part < 4; part++)
         {
-            // whoops, let's do it the other way
-            state = state.withProperty(PART, 1);
+            List<BlockPos> parts = getOtherBlocks(pos, blockFacing, part).collect(Collectors.toList());
 
-            other = getOtherBlock(pos, state);
-            otherState = worldIn.getBlockState(other);
+            boolean allGood = true;
 
-            if(!otherState.getBlock().isReplaceable(worldIn, other))
+            for(int i = 0; i < parts.size(); i++)
             {
-                //... ItemFurnaceBlock! you were supposed to catch this!
-                worldIn.destroyBlock(pos, true);
-                return;
+                BlockPos p = parts.get(i);
+                if(p.equals(pos))
+                    continue;
+
+                IBlockState blockState = worldIn.getBlockState(p);
+                if(!blockState.getBlock().isReplaceable(worldIn, p))
+                {
+                    allGood = false;
+                    break;
+                }
             }
+
+            if(!allGood)
+                continue;
+
+            for(int i = 0; i < parts.size(); i++)
+            {
+                BlockPos p = parts.get(i);
+
+                state = state.withProperty(PART, i);
+
+                worldIn.setBlockState(p, state, 2);
+            }
+
+            return;
         }
 
-        worldIn.setBlockState(pos, state, 2);
-
-        state = state
-            .withProperty(PART, 1 - state.getValue(PART));
-
-        worldIn.setBlockState(other, state, 2);
+        // if we got here, we couldn't place our blocks :(
+        worldIn.destroyBlock(pos, true);
     }
 
     @Override
@@ -159,24 +175,44 @@ public class BlockFurnace
     {
         super.breakBlock(worldIn, pos, state);
 
-        BlockPos other = getOtherBlock(pos, state);
-
-        worldIn.destroyBlock(other, false);
+        getOtherBlocks(pos, state).forEach(p -> {
+            if(!p.equals(pos))
+            {
+                worldIn.destroyBlock(p, false);
+            }
+        });
     }
 
-    private BlockPos getOtherBlock(BlockPos pos, IBlockState state)
+    public static Stream<BlockPos> getOtherBlocks(BlockPos pos, IBlockState state)
     {
         EnumFacing facing = state.getValue(FACING);
         int part = state.getValue(PART);
 
-        switch(part)
+        return getOtherBlocks(pos, facing, part);
+    }
+
+    public static Stream<BlockPos> getOtherBlocks(BlockPos pos, EnumFacing facing, int startPart)
+    {
+        switch(startPart)
         {
-            case 0:
-                return pos.offset(facing.rotateYCCW());
+            case 0: break; //cool
             case 1:
-                return pos.offset(facing.rotateY());
+                pos = pos.offset(facing.rotateY());
+                break;
+            case 2:
+                pos = pos.offset(facing);
+                break;
+            case 3:
+                pos = pos.offset(facing).offset(facing.rotateY());
+                break;
         }
-        return pos;
+
+        return Stream.of(
+            pos,
+            pos.offset(facing.rotateYCCW()),
+            pos.offset(facing.getOpposite()),
+            pos.offset(facing.getOpposite()).offset(facing.rotateYCCW())
+        );
     }
 
     private TileEntityFurnace getTileEntity(IBlockAccess world, BlockPos pos)
@@ -243,12 +279,12 @@ public class BlockFurnace
         if(type == 2)
             return;
 
-        if(stateIn.getValue(PART) != 1)
+        if(stateIn.getValue(PART) != 3)
             return;
 
         TileEntityFurnace te = getTileEntity(worldIn, pos);
 
-        if(!te.getIsActive())
+        if(te == null || !te.getIsActive())
             return;
 
         for(int i = 0; i < 2; i++)
@@ -269,7 +305,10 @@ public class BlockFurnace
     {
         TileEntityFurnace te = getTileEntity(worldIn, pos);
 
-        state = state.withProperty(ACTIVE, te.getIsActive());
+        if(te != null)
+        {
+            state = state.withProperty(ACTIVE, te.getIsActive());
+        }
 
         return state;
     }
