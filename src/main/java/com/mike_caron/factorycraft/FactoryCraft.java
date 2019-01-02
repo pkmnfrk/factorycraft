@@ -12,6 +12,7 @@ import com.mike_caron.factorycraft.capability.*;
 import com.mike_caron.factorycraft.client.GuiEventHandler;
 import com.mike_caron.factorycraft.energy.EnergyManager;
 import com.mike_caron.factorycraft.item.ModItems;
+import com.mike_caron.factorycraft.network.CraftingStatusMessage;
 import com.mike_caron.factorycraft.network.ManualCraftingMessage;
 import com.mike_caron.factorycraft.proxy.GuiProxy;
 import com.mike_caron.factorycraft.proxy.IModProxy;
@@ -123,6 +124,7 @@ public class FactoryCraft
 
         networkWrapper = NetworkRegistry.INSTANCE.newSimpleChannel(modId);
         networkWrapper.registerMessage(ManualCraftingMessage.Handler.class, ManualCraftingMessage.class, 1, Side.SERVER);
+        networkWrapper.registerMessage(CraftingStatusMessage.Handler.class, CraftingStatusMessage.class, 2, Side.CLIENT);
     }
 
     public void serverStopped(FMLServerStoppedEvent event)
@@ -167,7 +169,7 @@ public class FactoryCraft
     @SubscribeEvent
     static void onPlayerTick(TickEvent.PlayerTickEvent event)
     {
-        if(event.phase == TickEvent.Phase.END || event.player.world.isRemote)
+        if(event.phase == TickEvent.Phase.END)
             return;
 
         IPlayerCrafting crafting = event.player.getCapability(CapabilityPlayerCrafting.PLAYER_CRAFTING, null);

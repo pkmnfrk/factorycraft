@@ -3,8 +3,12 @@ package com.mike_caron.factorycraft.capability;
 import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.api.IPlayerCrafting;
 import com.mike_caron.factorycraft.item.crafting.NormalRecipes;
+import com.mike_caron.factorycraft.network.CraftingStatusMessage;
+import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.factorycraft.util.Tuple3;
+import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -13,6 +17,7 @@ import net.minecraft.util.NonNullList;
 
 import java.util.*;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 public class PlayerCraftingImpl
     implements IPlayerCrafting
@@ -22,6 +27,7 @@ public class PlayerCraftingImpl
     private final Map<Item, Integer> heldItems = new HashMap<>();
 
     private float progress;
+    private int changeCount = 0;
 
     public PlayerCraftingImpl(EntityPlayer player)
     {
@@ -36,7 +42,13 @@ public class PlayerCraftingImpl
 
         float craftingTime = NormalRecipes.INSTANCE.craftingTimeForRecipe(top.first);
 
-        progress += 1/20f;
+        if(progress < craftingTime)
+        {
+            progress += 1 / 20f;
+        }
+
+        if(player.world.isRemote)
+            return;
 
         if(progress >= craftingTime)
         {
@@ -73,8 +85,19 @@ public class PlayerCraftingImpl
                 top = new Tuple3<>(top.first, top.second - 1, top.third);
                 queue.push(top);
             }
+
+            notifyClient();
         }
 
+    }
+
+    private void notifyClient()
+    {
+        if(player.world.isRemote || !(player instanceof EntityPlayerMP))
+            return;
+
+        CraftingStatusMessage msg = new CraftingStatusMessage(queue.stream().map(itm -> new Tuple2<>(itm.first, itm.second)).collect(Collectors.toList()));
+        FactoryCraft.networkWrapper.sendTo(msg, (EntityPlayerMP)player);
     }
 
     private void addToHeld(Item item, int count)
@@ -126,6 +149,7 @@ public class PlayerCraftingImpl
             return;
         }
 
+        /*
         FactoryCraft.logger.info("Final crafting plan:");
         FactoryCraft.logger.info("Items taken from inventory:");
         for(Map.Entry<Item, Integer> inv : alreadyHeld.entrySet())
@@ -137,6 +161,7 @@ public class PlayerCraftingImpl
         {
             FactoryCraft.logger.info("{} x {}", inv.getValue(), inv.getKey().getRegistryName());
         }
+        */
 
         for(int slot = 0; slot < player.inventory.getSizeInventory(); slot++)
         {
@@ -185,6 +210,7 @@ public class PlayerCraftingImpl
             queue.addLast(new Tuple3<>(itm, craftingPlan.get(itm), itm == item));
         });
 
+        notifyClient();
     }
 
     public int maxCouldCraft(Item item)
@@ -198,6 +224,22 @@ public class PlayerCraftingImpl
             }
             lastCount += 1;
         }
+    }
+
+    public void handleQueueMessage(String[] items, int[] counts)
+    {
+        if(!player.world.isRemote)
+            return;
+
+        this.queue.clear();
+        for(int i = 0; i < items.length; i++)
+        {
+            Item itm = ItemUtils.getItemFromTag(items[i]);
+            Tuple3<Item, Integer, Boolean> top = new Tuple3<>(itm, counts[i], false);
+            queue.addLast(top);
+        }
+
+        changeCount++;
     }
 
     private boolean figureOutCrafting(Item item, int count)
@@ -214,7 +256,7 @@ public class PlayerCraftingImpl
     {
         if(!NormalRecipes.INSTANCE.hasRecipe(item))
         {
-            FactoryCraft.logger.info("Can't craft {} because there's no recipe", item.getRegistryName());
+            //FactoryCraft.logger.info("Can't craft {} because there's no recipe", item.getRegistryName());
             return false;
         }
 
@@ -238,7 +280,7 @@ public class PlayerCraftingImpl
 
                 if(i > 0)
                 {
-                    FactoryCraft.logger.info("Taking {} {} from the leftover pile", i, inputItem.getRegistryName());
+                    //FactoryCraft.logger.info("Taking {} {} from the leftover pile", i, inputItem.getRegistryName());
                     leftovers.put(inputItem, leftovers.get(inputItem) - i);
                 }
             }
@@ -267,15 +309,15 @@ public class PlayerCraftingImpl
             alreadyHeld.put(inputItem, alreadyHeld.get(inputItem) + toEat);
 
             toCraft -= toEat;
-            FactoryCraft.logger.info("Eating {} {} from the player inventory", toEat, inputItem.getRegistryName());
+            //FactoryCraft.logger.info("Eating {} {} from the player inventory", toEat, inputItem.getRegistryName());
 
 
             if(toCraft > 0)
             {
-                FactoryCraft.logger.info("Unfortunately, there's still {} {} left to craft", toCraft, inputItem.getRegistryName());
+                //FactoryCraft.logger.info("Unfortunately, there's still {} {} left to craft", toCraft, inputItem.getRegistryName());
                 if(!figureOutCrafting(inputItem, toCraft, order + 1, craftingPlan, leftovers, alreadyHeld, priority))
                 {
-                    FactoryCraft.logger.info("Oups, can't make {}...", inputItem.getRegistryName());
+                    //FactoryCraft.logger.info("Oups, can't make {}...", inputItem.getRegistryName());
                     return false;
                 }
             }
@@ -308,5 +350,17 @@ public class PlayerCraftingImpl
         NBTTagList list = (NBTTagList) nbtBase;
 
 
+    }
+
+    @Override
+    public Deque<Tuple3<Item, Integer, Boolean>> getQueue()
+    {
+        return new ArrayDeque<>(queue);
+    }
+
+    @Override
+    public int getChangeCount()
+    {
+        return changeCount;
     }
 }
