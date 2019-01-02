@@ -179,10 +179,10 @@ public class PlayerCraftingImpl
         }
 
         priority.entrySet().stream()
-            .sorted(Comparator.comparingInt((ToIntFunction<Map.Entry<Item, Integer>>) Map.Entry::getValue))
+            .sorted(Comparator.comparingInt((ToIntFunction<Map.Entry<Item, Integer>>) Map.Entry::getValue).reversed())
             .map(Map.Entry::getKey)
         .forEach(itm -> {
-            queue.push(new Tuple3<>(itm, craftingPlan.get(itm), itm == item));
+            queue.addLast(new Tuple3<>(itm, craftingPlan.get(itm), itm == item));
         });
 
     }

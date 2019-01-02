@@ -24,6 +24,7 @@ public class GuiCraftingScreen
     private List<Item> craftingRecipes;
     private final List<GuiButton> craftingButtons = new ArrayList<>();
     private InventoryPlayer inventoryPlayer;
+    private int invChangeCount;
 
     public GuiCraftingScreen(int width, int height, ResourceLocation background, InventoryPlayer inventoryPlayer)
     {
@@ -31,6 +32,7 @@ public class GuiCraftingScreen
 
         craftingRecipes = new ArrayList<>(NormalRecipes.INSTANCE.craftingItems());
         this.inventoryPlayer = inventoryPlayer;
+        invChangeCount = this.inventoryPlayer.getTimesChanged();
 
         initControls();
     }
@@ -126,9 +128,11 @@ public class GuiCraftingScreen
         int oldYSize = this.ySize;
         this.xSize = xSize;
         this.ySize = ySize;
-        if(oldXSize != xSize || oldYSize != ySize)
+        if(oldXSize != xSize || oldYSize != ySize || invChangeCount != inventoryPlayer.getTimesChanged())
         {
             layoutButtons();
+            invChangeCount = inventoryPlayer.getTimesChanged();
+
         }
     }
 
