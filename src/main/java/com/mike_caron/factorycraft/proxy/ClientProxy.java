@@ -1,8 +1,11 @@
 package com.mike_caron.factorycraft.proxy;
 
+import com.mike_caron.factorycraft.FactoryCraft;
 import com.mike_caron.factorycraft.block.ModBlocks;
+import com.mike_caron.factorycraft.client.GuiEventHandler;
 import com.mike_caron.factorycraft.item.ModItems;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -23,7 +26,8 @@ public class ClientProxy
     @Override
     public void init(FMLInitializationEvent e)
     {
-
+        FactoryCraft.guiEventHandler = new GuiEventHandler();
+        MinecraftForge.EVENT_BUS.register(FactoryCraft.guiEventHandler);
     }
 
     @Override
