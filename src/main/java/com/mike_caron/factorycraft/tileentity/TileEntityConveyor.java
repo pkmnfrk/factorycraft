@@ -7,7 +7,6 @@ import com.mike_caron.factorycraft.block.BlockConveyor;
 import com.mike_caron.factorycraft.util.Tuple2;
 import com.mike_caron.mikesmodslib.util.ItemUtils;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -254,28 +253,6 @@ public class TileEntityConveyor
         return cachedTurn;
     }
 
-    private void debugPopluation()
-    {
-        if(!populated)
-        {
-            if (tracks.get(0).getItemCount() == 0)
-            {
-                int i = 0;
-                for (Track t : tracks)
-                {
-                    for (float f = ITEM_RADIUS; f < t.getLength(); f += 1 / 32f)
-                    {
-                        t.insert(f, new ItemStack(i == 0 ? Items.COAL : Items.DIAMOND, 1), false);
-                    }
-                    //t.insert(0.6f, new ItemStack(i == 0 ? Items.COAL : Items.DIAMOND, 1), false);
-                    i += 1;
-                }
-                markDirty();
-            }
-            populated = true;
-        }
-    }
-
     @Override
     public void readFromNBT(NBTTagCompound compound)
     {
@@ -378,6 +355,7 @@ public class TileEntityConveyor
     @Override
     protected void markAndNotify()
     {
+        markDirty();
         super.markAndNotify();
     }
 
@@ -781,7 +759,6 @@ public class TileEntityConveyor
 
         private void updateNone(float speed, int iter)
         {
-            boolean changed = false;
             float lastPos = maxLength;
 
             for(int i = items.size() - 1; i >= 0; i--)
@@ -805,13 +782,8 @@ public class TileEntityConveyor
                 if(newPos != lastPos)
                 {
                     items.set(i, new Tuple2<>(newPos, item.second));
-                    //changed = true;
+                    markDirty();
                 }
-            }
-
-            if(changed && !world.isRemote)
-            {
-                markAndNotify();
             }
         }
 
@@ -853,7 +825,7 @@ public class TileEntityConveyor
                     else if (newPos != lastPos)
                     {
                         items.set(i, new Tuple2<>(newPos, item.second));
-                        //changed = true;
+                        markDirty();
                     }
                 }
 
@@ -908,7 +880,7 @@ public class TileEntityConveyor
                     else if (newPos != lastPos)
                     {
                         items.set(i, new Tuple2<>(newPos, item.second));
-                        //changed = true;
+                        markDirty();
                     }
                 }
 
