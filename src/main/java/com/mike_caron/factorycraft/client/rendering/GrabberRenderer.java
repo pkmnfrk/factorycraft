@@ -1,6 +1,7 @@
 package com.mike_caron.factorycraft.client.rendering;
 
 import com.mike_caron.factorycraft.tileentity.TileEntityGrabber;
+import com.mike_caron.factorycraft.util.MathUtil;
 import com.mike_caron.mikesmodslib.block.FacingBlockBase;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,7 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
@@ -30,6 +32,12 @@ public class GrabberRenderer
         if (blockRenderer == null) {
             blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
         }
+
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        float distSq = MathUtil.distanceSq(player.posX, player.posY, player.posZ, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
+
+        if(distSq > 256)
+            return;
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();

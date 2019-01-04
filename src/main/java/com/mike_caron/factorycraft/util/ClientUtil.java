@@ -83,7 +83,10 @@ public class ClientUtil
 
     public static void tick()
     {
-        renderedConnections.clear();
+        if(!renderedConnections.isEmpty())
+        {
+            renderedConnections.clear();
+        }
         frame += 1;
     }
 

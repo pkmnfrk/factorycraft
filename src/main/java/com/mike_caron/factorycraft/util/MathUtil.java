@@ -31,6 +31,24 @@ public class MathUtil
         );
     }
 
+    public static float distanceSq(Vector3f a, Vector3f b)
+    {
+        return (float)(
+            Math.pow(b.x - a.x, 2)
+                + Math.pow(b.y - a.y, 2)
+                + Math.pow(b.z - a.z, 2)
+        );
+    }
+
+    public static float distanceSq(double x1, double y1, double z1, double x2, double y2, double z2)
+    {
+        return (float)(
+            Math.pow(x2 - x1, 2)
+                + Math.pow(y2 - y1, 2)
+                + Math.pow(z2 - z1, 2)
+        );
+    }
+
     public static float angle(Vector3f origin, Vector3f point, Vector3f dest)
     {
         origin = normalize(origin);

@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
@@ -531,14 +531,16 @@ public class TileEntityConveyor
 
         }
 
-        public void visitAllPositions(BiConsumer<ItemStack, Vector4f> visitor)
+        public void visitAllPositions(BiFunction<ItemStack, Vector4f, Boolean> visitor)
         {
             for(int i = 0; i < tracks.size(); i++)
             {
                 for (Tuple2<Float, ItemStack> item : tracks.get(i).getItems())
                 {
                     Vector4f p = getPosition(i, item.first);
-                    visitor.accept(item.second, p);
+                    boolean result = visitor.apply(item.second, p);
+
+                    if(!result) return;
                 }
             }
         }
