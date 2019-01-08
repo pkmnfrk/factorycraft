@@ -112,7 +112,7 @@ public class ConveyorRenderer
             transform.scale(SCALE_FACTOR);
             tmp.set(0, 1, 0);
             transform.rotate((float)Math.toRadians(item.second.w), tmp);
-            //localTransform.rotate(normalAngle, normal);
+            //localTransform.rotate(normalAngle, normal); 
             transform.translate(TRANSLATE_FACTOR);
 
             IBakedModel model = getModel(item.first);
