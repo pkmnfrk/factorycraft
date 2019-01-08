@@ -1,10 +1,13 @@
 package com.mike_caron.factorycraft.util;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 
 import java.util.stream.Stream;
 
@@ -51,6 +54,21 @@ public class MathTest
         assertApproximately(expected, normal);
     }
 
+    @Test
+    void translationIsCorrect()
+    {
+        Matrix4f identity = new Matrix4f();
+        identity.setIdentity();
+
+        Matrix4f translated = Matrix4f.translate(new Vector3f(1, 2, 3), identity, null);
+
+        Vector4f test = new Vector4f(1, 1, 1, 1);
+
+        Vector4f result = Matrix4f.transform(translated, test, null);
+
+        assertApproximately(new Vector4f(2, 3, 4, 1), result);
+    }
+
     private void assertApproximately(float expected, float actual)
     {
         float delta = Math.abs(actual - expected);
@@ -65,5 +83,17 @@ public class MathTest
         Assertions.assertTrue(delta < 0.0001, () -> "Expected " + expected + ", got " + actual);
         delta = Math.abs(actual.z - expected.z);
         Assertions.assertTrue(delta < 0.0001, () -> "Expected " + expected + ", got " + actual);
+    }
+
+    private void assertApproximately(Vector4f expected, Vector4f actual)
+    {
+        float delta = Math.abs(actual.x - expected.x);
+        if(delta >= 0.0001) Assertions.assertEquals(expected, actual);
+        delta = Math.abs(actual.y - expected.y);
+        if(delta >= 0.0001) Assertions.assertEquals(expected, actual);
+        delta = Math.abs(actual.z - expected.z);
+        if(delta >= 0.0001) Assertions.assertEquals(expected, actual);
+        delta = Math.abs(actual.w - expected.w);
+        if(delta >= 0.0001) Assertions.assertEquals(expected, actual);
     }
 }
