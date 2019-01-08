@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -81,13 +82,16 @@ public class ClientUtil
 
     }
 
-    public static void tick()
+    public static void tick(TickEvent.Phase phase)
     {
-        if(!renderedConnections.isEmpty())
+        if(phase == TickEvent.Phase.START)
         {
-            renderedConnections.clear();
+            if (!renderedConnections.isEmpty())
+            {
+                renderedConnections.clear();
+            }
+            frame += 1;
         }
-        frame += 1;
     }
 
     public static void renderConnections(List<BlockPos> connections, double x, double y, double z)
@@ -142,5 +146,10 @@ public class ClientUtil
     public static Tessellator tes()
     {
         return Tessellator.getInstance();
+    }
+
+    public static int getFrame()
+    {
+        return frame;
     }
 }

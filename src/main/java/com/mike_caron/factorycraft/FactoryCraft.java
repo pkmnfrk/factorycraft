@@ -163,7 +163,7 @@ public class FactoryCraft
     @SubscribeEvent
     static void onRenderTick(TickEvent.RenderTickEvent evt)
     {
-        ClientUtil.tick();
+        ClientUtil.tick(evt.phase);
     }
 
     @SubscribeEvent
